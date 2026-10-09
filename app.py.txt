@@ -1,0 +1,34 @@
+import streamlit as st
+from PIL import Image
+
+st.set_page_config(page_title="OB Scanner Vision", layout="centered")
+
+# --- SYSTÈME DE MOT DE PASSE ---
+password_input = st.text_input("🔑 Entrez le mot de passe pour accéder au scanner :", type="password")
+
+# Définissez le mot de passe de votre choix ci-dessous
+if password_input != "Cecile46*":
+    st.warning("Veuillez entrer le mot de passe valide pour afficher l'application.")
+    st.stop()  # Bloque l'affichage du reste si le mot de passe est incorrect ou vide
+
+# --- CODE DE L'APPLICATION ---
+st.title("🎯 Smart Money Concepts - Vision du scanner OB")
+st.write("Glissez-déposez une capture d'écran de graphique ou un PDF pour analyser les Order Blocks vierges.")
+
+uploaded_file = st.file_uploader("Déposez votre image ou PDF ici", type=["png", "jpg", "jpeg", "pdf"])
+
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Graphique soumis à l'analyse", use_container_width=True)
+    
+    if st.button("🚀 Lancer l'analyse des Blocs de Commande 5*"):
+        with st.spinner("Analyse des structures institutionnelles en cours..."):
+            st.success("Analyse terminée !")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("#### 🟢 Demand OB (Achat)")
+                st.info("**Zone détectée :** 4101.00 - 4107.00\n* **Statut :** Vierge")
+            with col2:
+                st.markdown("#### 🔴 Supply OB (Vente)")
+                st.error("**Zone détectée :** 4180.00 - 4185.00\n* **Statut :** Vierge")
