@@ -84,7 +84,6 @@ def annoter_graphique(image_originale):
 
   width, height = image_a_dessiner.size
 
-  # Rectangles respectant la configuration de l'indicateur OB 5*
   draw.rectangle(
       [width * 0.1, height * 0.72, width * 0.9, height * 0.82],
       fill=(0, 200, 83, 72),
@@ -113,14 +112,18 @@ if entree_mot_de_passe != "Cecile46*":
   )
   st.stop()
 
-# --- PARAMÈTRES DE LA BARRE LATÉRALE (Inspirés du Pine Script OB 5★) ---
+# --- PARAMÈTRES DE LA BARRE LATÉRALE (Corrigés avec min_value / max_value) ---
 st.sidebar.header("⭐ Paramètres OB Scanner 5★")
 atr_len = st.sidebar.number_input("Période ATR (Displacement)", value=14)
 lookback_bars = st.sidebar.slider(
-    "Fenêtre de recherche (Lookback)", minval=3, maxval=60, value=20
+    "Fenêtre de recherche (Lookback)", min_value=3, max_value=60, value=20
 )
 min_stars = st.sidebar.slider(
-    "Note minimum des OB (Étoiles)", minval=1.0, maxval=5.0, step=0.5, value=1.0
+    "Note minimum des OB (Étoiles)",
+    min_value=1.0,
+    max_value=5.0,
+    step=0.5,
+    value=1.0,
 )
 use_volume = st.sidebar.checkbox(
     "Utiliser le volume dans la note",
