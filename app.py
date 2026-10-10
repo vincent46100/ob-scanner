@@ -1,15 +1,17 @@
 from datetime import date
 import numpy as np
-from PIL import Image, ImageDraw
+import pandas as pd
+import plotly.graph_objects as go
 import requests
 import streamlit as st
+import yfinance as yf
 
 st.set_page_config(
-    page_title="OB Scanner AI - SMC & Advanced Analysis", layout="centered"
+    page_title="OB Scanner AI - Moteur Algorithmique SMC", layout="wide"
 )
 
 
-# --- FONCTION : RÉCUPÉRATION DU CALENDRIER ÉCONOMIQUE EN TEMPS RÉEL ---
+# --- FONCTION : RÉCUPÉRATION DU CALENDRIER ÉCONOMIQUE ---
 @st.cache_data(ttl=3600)
 def obtenir_annonces_du_jour():
   try:
@@ -17,89 +19,73 @@ def obtenir_annonces_du_jour():
     url = f"https://financialmodelingprep.com/api/v3/economic_calendar?from={aujourdhui}&to={aujourdhui}&apikey=demo"
     reponse = requests.get(url, timeout=5)
     donnees = reponse.json()
-    annonces_majeures = [
+    return [
         item
         for item in donnees
         if item.get("impact") == "High"
         and item.get("currency") in ["USD", "EUR", "GBP", "JPY"]
     ]
-    return annonces_majeures
   except Exception:
     return []
 
 
-# --- MOTEUR D'ANALYSE AVANCÉE SMC & ORDER BLOCKS ---
-def analyser_et_detecter_ob(image_originale, lookback, min_stars):
-  width, height = image_originale.size
-
-  # Simulation du calcul algorithmique basé sur les paramètres de l'indicateur 5★
-  # L'algorithme analyse la structure de l'image et positionne les zones d'intérêt institutionnel
-  
-  # Coordonnées dynamiques calculées pour encadrer précisément les zones clés
-  # (Dans un mode purement algorithmique, ces coordonnées découlent des bougies d'impulsion détectées)
-  
-  demand_box = [width * 0.15, height * 0.65, width * 0.85, height * 0.78]
-  supply_box = [width * 0.15, height * 0.18, width * 0.85, height * 0.32]
-
-  image_a_dessiner = image_originale.convert("RGBA").copy()
-  overlay = Image.new("RGBA", image_a_dessiner.size, (255, 255, 255, 0))
-  draw = ImageDraw.Draw(overlay)
-
-  # Tracé du Demand OB (Haussier) - Vert institutionnel avec bordure nette
-  draw.rectangle(
-      demand_box,
-      fill=(0, 200, 83, 65),
-      outline=(0, 200, 83, 255),
-      width=3,
-  )
-
-  # Tracé du Supply OB (Baissier) - Rouge institutionnel avec bordure nette
-  draw.rectangle(
-      supply_box,
-      fill=(255, 61, 0, 65),
-      outline=(255, 61, 0, 255),
-      width=3,
-  )
-
-  image_final = Image.alpha_composite(image_a_dessiner, overlay)
-  return image_final.convert("RGB"), demand_box, supply_box
+# --- TÉLÉCHARGEMENT DES DONNÉES DE MARCHÉ (OHLCV) ---
+@st.cache_data(ttl=600)
+def charger_donnees_marche(symbole, intervalle="1h"):
+  # Gestion des périodes selon l'intervalle pour respecter les limites yfinance
+    periode = "60d" if intervalle in ["1h", "30m", "15m"] else "1y"
+    df = yf.download(symbole, period=periode, interval=intervalle, progress=False)
+    
+    # Correction multi-index éventuelle de yfinance
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.droplevel(1)
+        
+    df = df.dropna()
+    return df
 
 
-def obtenir_infos_marche(fichier_telecharge):
-  nom_fichier = fichier_telecharge.name.upper()
+# --- ALGORITHME DE DÉTECTION DES ORDER BLOCKS (Logique Pine Script) ---
+def calculer_order_blocks(df, atr_len=14, lookback=20):
+    # Calcul de l'ATR
+    high_low = df['High'] - df['Low']
+    high_close = np.abs(df['High'] - df['Close'].shift())
+    low_close = np.abs(df['Low'] - df['Close'].shift())
+    tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+    df['ATR'] = tr.rolling(window=atr_len).mean()
 
-  if "DAX" in nom_fichier or "GERMANY" in nom_fichier:
-    return {
-        "actif": "DAX / Germany 40 (Indice Boursier)",
-        "demand": "24750.00 - 24850.00 (★★★★★)",
-        "supply": "25450.00 - 25550.00 (★★★★☆)",
-        "tendance": "Rebond haussier validé après sweep de liquidité",
-        "fvg": "Fair Value Gap identifié entre 25100.00 et 25250.00",
-    }
-  elif "EURUSD" in nom_fichier or "EUR" in nom_fichier:
-    return {
-        "actif": "EURUSD (Paire Forex)",
-        "demand": "1.0820 - 1.0835 (★★★★★)",
-        "supply": "1.0910 - 1.0925 (★★★★☆)",
-        "tendance": "Structure haussière / Consolidation de continuation",
-        "fvg": "Fair Value Gap identifié entre 1.0860 et 1.0875",
-    }
-  elif "BTC" in nom_fichier or "BITCOIN" in nom_fichier:
-    return {
-        "actif": "BTCUSD / Bitcoin (Crypto)",
-        "demand": "62000.00 - 63500.00 (★★★★★)",
-        "supply": "68000.00 - 69500.00 (★★★★★)",
-        "tendance": "Impulsion forte avec cassure de structure (BOS)",
-        "fvg": "Fair Value Gap identifié entre 65000.00 et 66200.00",
-    }
-  else:
-    return {
-        "actif": "XAUUSD / Or (Analyse SMC Approfondie)",
-        "demand": "4118.00 - 4134.00 (★★★★★)",
-        "supply": "4170.00 - 4192.00 (★★★★★)",
-        "tendance": "Expansion haussière majeure après mitigation de l'OB institutionnel",
-        "fvg": "Fair Value Gap institutionnel actif entre 4140.00 et 4155.00",
-    }
+    # Listes pour stocker les zones OB détectées
+    bullish_obs = []
+    bearish_obs = []
+
+    # Parcours des bougies pour détecter le Displacement et l'OB
+    for i in range(lookback, len(df) - 1):
+        # OB Haussier (Demand OB) : Dernière bougie baissière avant une forte impulsion haussière
+        if df['Close'].iloc[i] < df['Open'].iloc[i]: # Bougie rouge
+            # Vérification de l'impulsion (la bougie suivante casse le haut de la bougie i)
+            if df['Close'].iloc[i+1] > df['High'].iloc[i]:
+                move_size = df['Close'].iloc[i+1] - df['Low'].iloc[i]
+                if move_size >= (1.5 * df['ATR'].iloc[i]):
+                    bullish_obs.append({
+                        'index': i,
+                        'top': df['High'].iloc[i],
+                        'bottom': df['Low'].iloc[i],
+                        'date': df.index[i]
+                    })
+
+        # OB Baissier (Supply OB) : Dernière bougie haussière avant une forte impulsion baissière
+        if df['Close'].iloc[i] > df['Open'].iloc[i]: # Bougie verte
+            if df['Close'].iloc[i+1] < df['Low'].iloc[i]:
+                move_size = df['High'].iloc[i] - df['Close'].iloc[i+1]
+                if move_size >= (1.5 * df['ATR'].iloc[i]):
+                    bearish_obs.append({
+                        'index': i,
+                        'top': df['High'].iloc[i],
+                        'bottom': df['Low'].iloc[i],
+                        'date': df.index[i]
+                    })
+
+    # Garder les 3 plus récents de chaque côté pour la clarté du graphique
+    return bullish_obs[-3:], bearish_obs[-3:]
 
 
 # --- SYSTÈME DE MOT DE PASSE ---
@@ -108,35 +94,37 @@ entree_mot_de_passe = st.text_input(
 )
 
 if entree_mot_de_passe != "Cecile46*":
-  st.warning(
-      "Veuillez entrer le mot de passe valide pour afficher l'application."
-  )
+  st.warning("Veuillez entrer le mot de passe valide pour afficher l'application.")
   st.stop()
 
+
 # --- BARRE LATÉRALE : PARAMÈTRES AVANCÉS ---
-st.sidebar.header("⭐ Paramètres OB Scanner AI (5★)")
-lookback_bars = st.sidebar.slider(
-    "Fenêtre de recherche (Lookback)", min_value=3, max_value=60, value=20
-)
-min_stars = st.sidebar.slider(
-    "Note minimum des OB (Étoiles)",
-    min_value=1.0,
-    max_value=5.0,
-    step=0.5,
-    value=4.0,
-)
-use_volume = st.sidebar.checkbox(
-    "Utiliser le filtre de volume institutionnel",
-    value=False,
-    help="Désactiver si CFD/Forex sans volume réel",
+st.sidebar.header("⚙️ Configuration du Marché")
+
+actif_choisi = st.sidebar.selectbox(
+    "Sélectionner l'Actif",
+    options=["Or / XAUUSD (GC=F)", "DAX / Germany 40 (^GDAXI)", "EURUSD (EURUSD=X)", "Bitcoin (BTC-USD)"],
+    index=0
 )
 
+# Mapping du ticker yfinance
+ticker_map = {
+    "Or / XAUUSD (GC=F)": "GC=F",
+    "DAX / Germany 40 (^GDAXI)": "^GDAXI",
+    "EURUSD (EURUSD=X)": "EURUSD=X",
+    "Bitcoin (BTC-USD)": "BTC-USD"
+}
+ticker = ticker_map[actif_choisi]
+
+intervalle_choisi = st.sidebar.selectbox("Unité de Temps", options=["15m", "1h", "4h", "1d"], index=1)
+
 st.sidebar.markdown("---")
-integrer_annonces = st.sidebar.checkbox(
-    "Prendre en compte les annonces économiques",
-    value=True,
-    help="Filtre macro-économique en temps réel",
-)
+st.sidebar.header("⭐ Paramètres OB Scanner 5★")
+atr_period = st.sidebar.number_input("Période ATR", value=14, min_value=5, max_value=50)
+lookback_period = st.sidebar.slider("Fenêtre de recherche (Lookback)", min_value=5, max_value=50, value=20)
+
+st.sidebar.markdown("---")
+integrer_annonces = st.sidebar.checkbox("Prendre en compte les annonces économiques", value=True)
 
 if integrer_annonces:
   annonces_jour = obtenir_annonces_du_jour()
@@ -144,74 +132,83 @@ if integrer_annonces:
   st.sidebar.subheader("📅 Annonces Majeures du Jour")
   if annonces_jour:
     for annonce in annonces_jour:
-      st.sidebar.warning(
-          f"🔴 **{annonce.get('event')}**\n"
-          f"⏰ Heure : {annonce.get('date')[11:16]} | Devise :"
-          f" {annonce.get('currency')}"
-      )
+      st.sidebar.warning(f"🔴 **{annonce.get('event')}**\n⏰ Heure : {annonce.get('date')[11:16]}")
   else:
-    st.sidebar.success("✅ Aucune annonce majeure à fort impact aujourd'hui.")
+    st.sidebar.success("✅ Aucune annonce majeure aujourd'hui.")
+
 
 # --- APPLICATION PRINCIPALE ---
-st.title("🎯 Smart Money Concepts - OB Scanner AI (Analyse Avancée)")
-st.write(
-    "Glissez-déposez votre graphique pour lancer l'algorithme de calcul des"
-    " Order Blocks et l'analyse institutionnelle."
-)
+st.title("🎯 Smart Money Concepts - OB Scanner AI (Algorithmique)")
+st.write("Analyse mathématique en direct des Order Blocks et des structures institutionnelles.")
 
-fichier_telecharge = st.file_uploader(
-    "Déposez votre image ici", type=["png", "jpg", "jpeg"]
-)
+if st.button("🚀 Charger le Marché et Calculer les Order Blocks"):
+    with st.spinner("Récupération des bougies et calculs ATR / Displacement en cours..."):
+        df = charger_donnees_marche(ticker, intervalle_choisi)
+        bull_obs, bear_obs = calculer_order_blocks(df, atr_len=atr_period, lookback=lookback_period)
+        
+        # Création du graphique Plotly professionnel
+        fig = go.Figure(data=[go.Candlestick(
+            x=df.index,
+            open=df['Open'],
+            high=df['High'],
+            low=df['Low'],
+            close=df['Close'],
+            name="Prix"
+        )])
 
-if fichier_telecharge is not None:
-  image_originale = Image.open(fichier_telecharge)
-  st.image(
-      image_originale,
-      caption="Graphique brut soumis à l'analyse algorithmique",
-      use_container_width=True,
-  )
+        # Ajout des zones Demand OB (Vertes)
+        for ob in bull_obs:
+            fig.add_shape(
+                type="rect",
+                x0=df.index[ob['index']], y0=ob['bottom'],
+                x1=df.index[-1], y1=ob['top'],
+                fillcolor="rgba(0, 200, 83, 0.25)",
+                line=dict(color="rgba(0, 200, 83, 1)", width=1),
+            )
 
-  if st.button("🚀 Lancer l'analyse algorithmique des OB"):
-    with st.spinner(
-        "⚙️ Exécution des calculs ATR, recherche de displacement et notation"
-        " 5★..."
-    ):
-      image_annotee, box_d, box_s = analyser_et_detecter_ob(
-          image_originale, lookback_bars, min_stars
-      )
-      infos = obtenir_infos_marche(fichier_telecharge)
-      st.success("Analyse algorithmique et cartographie des zones terminées !")
+        # Ajout des zones Supply OB (Rouges)
+        for ob in bear_obs:
+            fig.add_shape(
+                type="rect",
+                x0=df.index[ob['index']], y0=ob['bottom'],
+                x1=df.index[-1], y1=ob['top'],
+                fillcolor="rgba(255, 61, 0, 0.25)",
+                line=dict(color="rgba(255, 61, 0, 1)", width=1),
+            )
 
-    # --- RÉSULTATS ---
+        fig.update_layout(
+            title=f"Analyse SMC - {actif_choisi} ({intervalle_choisi})",
+            xaxis_title="Date / Heure",
+            yaxis_title="Prix",
+            template="plotly_dark",
+            height=650,
+            xaxis_rangeslider_visible=False
+        )
+
+        st.success("Calculs terminés avec succès !")
+
+    # --- AFFICHAGE DU GRAPHIQUE INTERACTIF ---
     st.markdown("---")
-    st.info(f"🔍 **Actif analysé :** `{infos['actif']}`")
+    st.subheader("🖼️ Graphique Interactif & Zones Institutionnelles")
+    st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("🖼️ Cartographie Intelligente des Order Blocks")
-    st.image(
-        image_annotee,
-        caption=(
-            "Zones institutionnelles calculées et tracées par l'algorithme"
-            " d'analyse"
-        ),
-        use_container_width=True,
-    )
-
-    st.subheader("📍 Niveaux Clés & Notation 5★")
+    # --- TABLEAU DE SYNTHÈSE ---
+    st.markdown("---")
+    st.subheader("📍 Niveaux Clés Détectés par l'Algorithme")
+    
     col1, col2 = st.columns(2)
     with col1:
-      st.markdown("#### 🟢 Demand OB (Zone d'Achat)")
-      st.info(f"**Niveaux :** {infos['demand']}\n* **Statut :** Non mitigé")
-    with col2:
-      st.markdown("#### 🔴 Supply OB (Zone de Vente)")
-      st.error(f"**Niveaux :** {infos['supply']}\n* **Statut :** Non mitigé")
+        st.markdown("#### 🟢 Derniers Demand OB (Achat)")
+        if bull_obs:
+            for ob in bull_obs:
+                st.info(f"**Zone :** {ob['bottom']:.2f} - {ob['top']:.2f} (Détecté le {ob['date']})")
+        else:
+            st.warning("Aucun Demand OB valide trouvé sur cette période.")
 
-    st.markdown("---")
-    st.subheader("📝 Synthèse & Recommandation SMC")
-    st.markdown(f"""
-    ### 📈 Bilan de la Structure
-    * **Tendance institutionnelle :** {infos['tendance']}
-    * **Déséquilibre de marché :** {infos['fvg']}
-    
-    ### 💡 Plan de Trading Suggéré
-    * **Attention particulière :** Attendre un retour de prix sur le Demand OB avec confirmation en lower timeframe (LTF) pour optimiser le ratio риск/rendement.
-    """)
+    with col2:
+        st.markdown("#### 🔴 Derniers Supply OB (Vente)")
+        if bear_obs:
+            for ob in bear_obs:
+                st.error(f"**Zone :** {ob['bottom']:.2f} - {ob['top']:.2f} (Détecté le {ob['date']})")
+        else:
+            st.warning("Aucun Supply OB valide trouvé sur cette période.")
