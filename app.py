@@ -4,7 +4,7 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="Vision du scanner OB - SMC & Annotation", layout="centered"
+    page_title="Vision du scanner OB AI - SMC & Annotation", layout="centered"
 )
 
 
@@ -59,7 +59,7 @@ def annoter_graphique(image_originale):
 
 # --- SYSTÈME DE MOT DE PASSE ---
 entree_mot_de_passe = st.text_input(
-    "🔑 Entrez le mot de passe pour le scanner :", type="password"
+    "🔑 Entrez le mot de passe pour OB Scanner AI :", type="password"
 )
 
 if entree_mot_de_passe != "Cecile46*":
@@ -91,7 +91,7 @@ if integrer_annonces:
     st.sidebar.success("✅ Aucune annonce majeure à fort impact aujourd'hui.")
 
 # --- CODE DE L'APPLICATION ---
-st.title("🎯 Smart Money Concepts - Vision du scanner OB")
+st.title("🎯 Smart Money Concepts - OB Scanner AI")
 st.write(
     "Glissez-déposez une capture d'écran de graphique pour lancer l'analyse"
     " complète et l'annotation visuelle."
@@ -104,7 +104,7 @@ fichier_telecharge = st.file_uploader(
 if fichier_telecharge is not None:
   image_originale = Image.open(fichier_telecharge)
 
-  if st.button("🚀 Lancer l'analyse et l'annotation graphique"):
+  if st.button("🚀 Lancer l'analyse OB Scanner AI"):
     with st.spinner("Analyse des structures et traçage des zones en cours..."):
       if integrer_annonces:
         st.info(
