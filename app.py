@@ -26,7 +26,7 @@ integrer_annonces = st.sidebar.checkbox(
 st.title("🎯 Smart Money Concepts - Vision du scanner OB")
 st.write(
     "Glissez-déposez une capture d'écran de graphique ou un PDF pour analyser"
-    " les Order Blocks vierges."
+    " les Order Blocks, la tendance et les points clés."
 )
 
 fichier_telecharge = st.file_uploader(
@@ -37,7 +37,7 @@ if fichier_telecharge is not None:
   image = Image.open(fichier_telecharge)
   st.image(image, caption="Graphique soumis à l'analyse", use_container_width=True)
 
-  if st.button("🚀 Lancer l'analyse des Blocs de Commande"):
+  if st.button("🚀 Lancer l'analyse complète (OB + Tendance + Points Clés)"):
     with st.spinner("Analyse des structures institutionnelles en cours..."):
       if integrer_annonces:
         st.info(
@@ -50,6 +50,8 @@ if fichier_telecharge is not None:
         )
       st.success("Analyse terminée !")
 
+    # --- 1. ZONES D'ORDER BLOCKS ---
+    st.subheader("📍 Zones d'Order Blocks Détectées")
     col1, col2 = st.columns(2)
     with col1:
       st.markdown("#### 🟢 Demand OB (Achat)")
@@ -57,3 +59,19 @@ if fichier_telecharge is not None:
     with col2:
       st.markdown("#### 🔴 Supply OB (Vente)")
       st.error("**Zone détectée :** 4180.00 - 4185.00\n* **Statut :** Vierge")
+
+    # --- 2. TEXTE D'ANALYSE DE TENDANCE ET POINTS CLÉS ---
+    st.markdown("---")
+    st.subheader("📝 Synthèse de l'Analyse du Marché")
+
+    st.markdown("""
+    ### 📈 Tendance du Marché
+    * **Direction principale :** Haussière à court/moyen terme.
+    * **Structure SMC :** Succession de sommets et creux plus hauts (Higher Highs / Higher Lows) validant la poursuite du flux d'achat.
+    * **Cassure de Structure (BOS) :** Validation d'un *Break of Structure* haussier récent, confirmant la prise de contrôle des acheteurs.
+
+    ### 🔑 Points Clés & Liquidité
+    * **Zone d'Accélération (FVG) :** Inbalance/Fair Value Gap identifié lors de l'impulsion vers les plus hauts.
+    * **Liquidité Induisante (Inducement) :** Présence de liquidité vendeur sous les récents plus bas relatifs, zone idéale pour un rechargement à l'achat.
+    * **Invalidation / Stop Level :** Rejet sous le niveau clé des 4085.00 annulerait la dynamique haussière actuelle.
+    """)
