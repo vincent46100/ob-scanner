@@ -42,8 +42,8 @@ def charger_donnees_marche(symbole, intervalle="1h"):
   return df
 
 
-# --- ALGORITHME DE DÉTECTION DES ORDER BLOCKS ---
-def calculer_order_blocks(df, atr_len=14, lookback=20):
+# --- ALGORITHME DE DÉTECTION AVEC FILTRE DE MITIGATION ---
+def calculer_order_blocks(df, atr_len=14, lookback=20, max_obs=2):
   high_low = df["High"] - df["Low"]
   high_close = np.abs(df["High"] - df["Close"].shift())
   low_close = np.abs(df["Low"] - df["Close"].shift())
@@ -53,6 +53,7 @@ def calculer_order_blocks(df, atr_len=14, lookback=20):
   bullish_obs = []
   bearish_obs = []
 
+  # 1. Détection initiale de tous les OB
   for i in range(lookback, len(df) - 1):
     # OB Haussier (Demand OB)
     if df["Close"].iloc[i] < df["Open"].iloc[i]:
@@ -78,7 +79,31 @@ def calculer_order_blocks(df, atr_len=14, lookback=20):
               "date": df.index[i],
           })
 
-  return bullish_obs[-5:], bearish_obs[-5:]
+  # 2. Filtrage de Mitigation (Supprime les zones déjà testées/cassées par le prix)
+  active_bulls = []
+  for ob in bullish_obs:
+    mitigated = False
+    for j in range(ob["index"] + 1, len(df)):
+      # Si le prix descend sous le haut de l'OB, il est mitigé
+      if df["Low"].iloc[j] <= ob["top"]:
+        mitigated = True
+        break
+    if not mitigated:
+      active_bulls.append(ob)
+
+  active_bears = []
+  for ob in bearish_obs:
+    mitigated = False
+    for j in range(ob["index"] + 1, len(df)):
+      # Si le prix monte au-dessus du bas de l'OB, il est mitigé
+      if df["High"].iloc[j] >= ob["bottom"]:
+        mitigated = True
+        break
+    if not mitigated:
+      active_bears.append(ob)
+
+  # On ne garde que les plus récents non mitigés (ex: max 2 de chaque côté pour la lisibilité)
+  return active_bulls[-max_obs:], active_bears[-max_obs:]
 
 
 # --- SYSTÈME DE MOT DE PASSE ---
@@ -93,7 +118,7 @@ if entree_mot_de_passe != "Cecile46*":
   st.stop()
 
 
-# --- BARRE LATÉRALE : PARAMÈTRES AVANCÉS ---
+# --- BARRE LATÉRALE ---
 st.sidebar.header("⚙️ Configuration du Marché")
 
 actif_choisi = st.sidebar.selectbox(
@@ -127,6 +152,9 @@ atr_period = st.sidebar.number_input(
 lookback_period = st.sidebar.slider(
     "Fenêtre de recherche (Lookback)", min_value=5, max_value=50, value=20
 )
+max_zones = st.sidebar.slider(
+    "Max zones affichées par côté", min_value=1, max_value=5, value=2
+)
 
 st.sidebar.markdown("---")
 integrer_annonces = st.sidebar.checkbox(
@@ -148,22 +176,22 @@ if integrer_annonces:
 
 
 # --- APPLICATION PRINCIPALE ---
-st.title("🎯 Smart Money Concepts - OB Scanner AI (Algorithmique)")
+st.title("🎯 Smart Money Concepts - OB Scanner AI (Propre & Épuré)")
 st.write(
-    "Graphique interactif avancé : zoomez, déplacez-vous et analysez les"
-    " zones en détail."
+    "Affichage exclusif des Order Blocks **non mitigés** (vierges) pour une"
+    " lecture claire et nette."
 )
 
-if st.button("🚀 Charger le Marché et Calculer les Order Blocks"):
-  with st.spinner(
-      "Récupération des bougies et calculs ATR / Displacement en cours..."
-  ):
+if st.button("🚀 Charger le Marché et Analyser"):
+  with st.spinner("Filtrage des zones actives et calculs en cours..."):
     df = charger_donnees_marche(ticker, intervalle_choisi)
     bull_obs, bear_obs = calculer_order_blocks(
-        df, atr_len=atr_period, lookback=lookback_period
+        df,
+        atr_len=atr_period,
+        lookback=lookback_period,
+        max_obs=max_zones,
     )
 
-    # Création du graphique Plotly
     fig = go.Figure(
         data=[
             go.Candlestick(
@@ -177,7 +205,7 @@ if st.button("🚀 Charger le Marché et Calculer les Order Blocks"):
         ]
     )
 
-    # Ajout des zones Demand OB (Vertes) étendues jusqu'à la fin
+    # Ajout des zones Demand OB (Vertes) non mitigées
     for ob in bull_obs:
       fig.add_shape(
           type="rect",
@@ -185,10 +213,11 @@ if st.button("🚀 Charger le Marché et Calculer les Order Blocks"):
           y0=ob["bottom"],
           x1=df.index[-1],
           y1=ob["top"],
-          fillcolor="rgba(0, 200, 83, 0.25)",
+          fillcolor="rgba(0, 200, 83, 0.2)",
+          line=dict(color="rgba(0, 200, 83, 0.9)", width=1),
       )
 
-    # Ajout des zones Supply OB (Rouges) étendues jusqu'à la fin
+    # Ajout des zones Supply OB (Rouges) non mitigées
     for ob in bear_obs:
       fig.add_shape(
           type="rect",
@@ -196,14 +225,14 @@ if st.button("🚀 Charger le Marché et Calculer les Order Blocks"):
           y0=ob["bottom"],
           x1=df.index[-1],
           y1=ob["top"],
-          fillcolor="rgba(255, 61, 0, 0.25)",
+          fillcolor="rgba(255, 61, 0, 0.2)",
+          line=dict(color="rgba(255, 61, 0, 0.9)", width=1),
       )
 
-    # Configuration de la vue initiale zoomée sur les 100 dernières bougies pour plus d'intuitivité
     debut_zoom = df.index[-100] if len(df) > 100 else df.index[0]
 
     fig.update_layout(
-        title=f"Analyse SMC - {actif_choisi} ({intervalle_choisi})",
+        title=f"SMC Pro Clean - {actif_choisi} ({intervalle_choisi})",
         xaxis_title="Date / Heure",
         yaxis_title="Prix",
         template="plotly_dark",
@@ -212,41 +241,36 @@ if st.button("🚀 Charger le Marché et Calculer les Order Blocks"):
         xaxis=dict(range=[debut_zoom, df.index[-1]], type="date"),
     )
 
-    st.success("Calculs terminés avec succès !")
+    st.success("Analyse épurée terminée !")
 
-  # --- AFFICHAGE DU GRAPHIQUE INTERACTIF ---
   st.markdown("---")
-  st.subheader("🖼️ Graphique Interactif (Zoomez & Déplacez-vous)")
-  st.info(
-      "💡 **Astuce :** Utilisez la barre d'outils en haut à droite du graphique"
-      " Plotly pour basculer en mode 'Pan' (déplacement à la souris) ou "
-      "zoomez directement avec votre molette."
-  )
+  st.subheader("🖼️ Graphique Propre (Zones Vierges Uniquement)")
   st.plotly_chart(fig, use_container_width=True)
 
-  # --- TABLEAU DE SYNTHÈSE ---
   st.markdown("---")
-  st.subheader("📍 Niveaux Clés Détectés par l'Algorithme")
+  st.subheader("📍 Niveaux Actifs Exploitables")
 
   col1, col2 = st.columns(2)
   with col1:
-    st.markdown("#### 🟢 Derniers Demand OB (Achat)")
+    st.markdown("#### 🟢 Demand OB Actifs (Achat)")
     if bull_obs:
       for ob in bull_obs:
         st.info(
-            f"**Zone :** {ob['bottom']:.2f} - {ob['top']:.2f} (Détecté le"
+            f"**Zone :** {ob['bottom']:.2f} - {ob['top']:.2f} (Créé le"
             f" {ob['date']})"
         )
     else:
-      st.warning("Aucun Demand OB valide trouvé sur cette période.")
+      st.success(
+          "Aucun Demand OB actif (tous ont été testés ou prix au-dessus)."
+      )
 
   with col2:
-    st.markdown("#### 🔴 Derniers Supply OB (Vente)")
+    st.markdown("#### 🔴 Supply OB Actifs (Vente)")
     if bear_obs:
       for ob in bear_obs:
         st.error(
-            f"**Zone :** {ob['bottom']:.2f} - {ob['top']:.2f} (Détecté le"
+            f"**Zone :** {ob['bottom']:.2f} - {ob['top']:.2f} (Créé le"
             f" {ob['date']})"
         )
     else:
-      st.warning("Aucun Supply OB valide trouvé sur cette période.")
+      st.success("Aucun Supply OB actif (tous ont été testés ou prix en-dessous).")
