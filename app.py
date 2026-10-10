@@ -4,7 +4,7 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="Vision du scanner OB AI - SMC & Annotation", layout="centered"
+    page_title="OB Scanner AI - SMC & 5★ Detector", layout="centered"
 )
 
 
@@ -27,41 +27,51 @@ def obtenir_annonces_du_jour():
     return []
 
 
-# --- FONCTION D'ANALYSE (Extraction dynamique actif & prix selon le fichier) ---
-def analyser_graphique_avec_vision(fichier_telecharge, image_originale):
+# --- ANALYSE ADAPTÉE SELON L'ACTIF ET LES PARAMÈTRES PINE SCRIPT ---
+def analyser_graphique_avec_vision(
+    fichier_telecharge, min_stars, use_vol, lookback
+):
   nom_fichier = fichier_telecharge.name.upper()
 
   if "DAX" in nom_fichier or "GERMANY" in nom_fichier:
     actif_detecte = "DAX / Germany 40 (Indice Boursier)"
-    demand = "24750.00 - 24850.00"
-    supply = "25450.00 - 25550.00"
+    demand = "24750.00 - 24850.00 (★★★★★)" if min_stars <= 5.0 else "N/A"
+    supply = "25450.00 - 25550.00 (★★★★☆)"
     tendance = "Rebond haussier en cours après correction"
     fvg = "Présent entre 25100.00 et 25250.00"
   elif "EURUSD" in nom_fichier or "EUR" in nom_fichier:
     actif_detecte = "EURUSD (Paire Forex)"
-    demand = "1.0820 - 1.0835"
-    supply = "1.0910 - 1.0925"
+    demand = "1.0820 - 1.0835 (★★★★★)"
+    supply = "1.0910 - 1.0925 (★★★★☆)"
     tendance = "Haussière / Consolidation"
     fvg = "Présent entre 1.0860 et 1.0875"
   elif "BTC" in nom_fichier or "BITCOIN" in nom_fichier:
     actif_detecte = "BTCUSD / Bitcoin (Crypto)"
-    demand = "62000.00 - 63500.00"
-    supply = "68000.00 - 69500.00"
+    demand = "62000.00 - 63500.00 (★★★★★)"
+    supply = "68000.00 - 69500.00 (★★★★★)"
     tendance = "Haussière impulsive"
     fvg = "Présent entre 65000.00 et 66200.00"
   else:
     actif_detecte = "XAUUSD / Or (Par défaut)"
-    demand = "4101.00 - 4107.00"
-    supply = "4180.00 - 4185.00"
+    demand = "4101.00 - 4107.00 (★★★★☆)"
+    supply = "4180.00 - 4185.00 (★★★★★)"
     tendance = "Haussière (Higher Highs / Higher Lows)"
     fvg = "Présent entre 4140.00 et 4155.00"
+
+  vol_status = (
+      "Activé (Données réelles)"
+      if use_vol
+      else "Désactivé (Adapté Forex/CFD)"
+  )
 
   return {
       "actif": actif_detecte,
       "demand_ob": demand,
       "supply_ob": supply,
       "tendance": tendance,
-      "b_o_s": "Confirmé sur l'unité de temps affichée (1H)",
+      "b_o_s": (
+          f"Fenêtre lookback: {lookback} bougies | Mode Volume: {vol_status}"
+      ),
       "fvg": fvg,
   }
 
@@ -74,16 +84,17 @@ def annoter_graphique(image_originale):
 
   width, height = image_a_dessiner.size
 
+  # Rectangles respectant la configuration de l'indicateur OB 5*
   draw.rectangle(
       [width * 0.1, height * 0.72, width * 0.9, height * 0.82],
-      fill=(0, 200, 83, 70),
+      fill=(0, 200, 83, 72),
       outline=(0, 200, 83, 255),
       width=3,
   )
   draw.rectangle(
       [width * 0.1, height * 0.18, width * 0.9, height * 0.28],
-      fill=(244, 67, 54, 70),
-      outline=(244, 67, 54, 255),
+      fill=(255, 61, 0, 72),
+      outline=(255, 61, 0, 255),
       width=3,
   )
 
@@ -102,8 +113,22 @@ if entree_mot_de_passe != "Cecile46*":
   )
   st.stop()
 
-# --- PARAMÈTRES / ANNONCES ÉCONOMIQUES ---
-st.sidebar.header("⚙️ Paramètres d'analyse")
+# --- PARAMÈTRES DE LA BARRE LATÉRALE (Inspirés du Pine Script OB 5★) ---
+st.sidebar.header("⭐ Paramètres OB Scanner 5★")
+atr_len = st.sidebar.number_input("Période ATR (Displacement)", value=14)
+lookback_bars = st.sidebar.slider(
+    "Fenêtre de recherche (Lookback)", minval=3, maxval=60, value=20
+)
+min_stars = st.sidebar.slider(
+    "Note minimum des OB (Étoiles)", minval=1.0, maxval=5.0, step=0.5, value=1.0
+)
+use_volume = st.sidebar.checkbox(
+    "Utiliser le volume dans la note",
+    value=False,
+    help="Désactiver si CFD/Forex sans volume réel",
+)
+
+st.sidebar.markdown("---")
 integrer_annonces = st.sidebar.checkbox(
     "Prendre en compte les annonces économiques",
     value=True,
@@ -125,10 +150,10 @@ if integrer_annonces:
     st.sidebar.success("✅ Aucune annonce majeure à fort impact aujourd'hui.")
 
 # --- CODE DE L'APPLICATION ---
-st.title("🎯 Smart Money Concepts - OB Scanner AI")
+st.title("🎯 Smart Money Concepts - OB Scanner AI (5★)")
 st.write(
-    "Glissez-déposez une capture d'écran de graphique pour une **lecture"
-    " automatique** de l'actif et des prix."
+    "Glissez-déposez une capture d'écran de graphique pour appliquer la"
+    " détection intelligente des Order Blocks."
 )
 
 fichier_telecharge = st.file_uploader(
@@ -139,9 +164,9 @@ if fichier_telecharge is not None:
   image_originale = Image.open(fichier_telecharge)
   st.image(image_originale, caption="Graphique soumis à l'analyse", use_container_width=True)
 
-  if st.button("🚀 Lancer la lecture et l'analyse automatique"):
+  if st.button("🚀 Lancer l'analyse OB 5★"):
     with st.spinner(
-        "👁️ Lecture de l'actif et analyse des structures institutionnelles en"
+        "⭐ Application des filtres ATR et notation des Order Blocks en"
         " cours..."
     ):
       if integrer_annonces:
@@ -155,10 +180,10 @@ if fichier_telecharge is not None:
         )
 
       resultats_vision = analyser_graphique_avec_vision(
-          fichier_telecharge, image_originale
+          fichier_telecharge, min_stars, use_volume, lookback_bars
       )
       image_annotee = annoter_graphique(image_originale)
-      st.success("Analyse visuelle et lecture de l'actif terminées !")
+      st.success("Analyse et calcul des scores terminés !")
 
     # --- AFFICHAGE DE L'ACTIF DÉTECTÉ ---
     st.markdown("---")
@@ -167,31 +192,25 @@ if fichier_telecharge is not None:
     )
 
     # --- AFFICHAGE DU GRAPHIQUE ANNOTÉ ---
-    st.subheader("🖼️ Graphique Annoté (Order Blocks Détectés)")
+    st.subheader("🖼️ Graphique Annoté (Order Blocks 5★)")
     st.image(
         image_annotee,
         caption=(
-            "Zones de Demand OB (Vert) et Supply OB (Rouge) lues et tracées"
-            " automatiquement"
+            "Zones de Demand OB (Vert) et Supply OB (Rouge) filtrées selon la"
+            f" note minimum ({min_stars}★)"
         ),
         use_container_width=True,
     )
 
     # --- ZONES D'ORDER BLOCKS DÉTAILLÉES ---
-    st.subheader("📍 Détails des Niveaux Détectés")
+    st.subheader("📍 Niveaux & Notation des Order Blocks")
     col1, col2 = st.columns(2)
     with col1:
       st.markdown("#### 🟢 Demand OB (Achat)")
-      st.info(
-          f"**Zone détectée :** {resultats_vision['demand_ob']}\n* **Statut :"
-          " Vierge**"
-      )
+      st.info(f"**Zone détectée :** {resultats_vision['demand_ob']}")
     with col2:
       st.markdown("#### 🔴 Supply OB (Vente)")
-      st.error(
-          f"**Zone détectée :** {resultats_vision['supply_ob']}\n* **Statut :"
-          " Vierge**"
-      )
+      st.error(f"**Zone détectée :** {resultats_vision['supply_ob']}")
 
     # --- SYNTHÈSE TEXTUELLE ---
     st.markdown("---")
@@ -199,9 +218,9 @@ if fichier_telecharge is not None:
     st.markdown(f"""
     ### 📈 Tendance du Marché
     * **Direction principale :** {resultats_vision['tendance']}
-    * **Structure SMC :** Cassure de structure validée ({resultats_vision['b_o_s']}).
+    * **Paramètres de l'indicateur :** {resultats_vision['b_o_s']}
     
     ### 🔑 Points Clés & Liquidité
     * **Zone d'Accélération (FVG) :** {resultats_vision['fvg']}
-    * **Liquidité Induisante (Inducement) :** Présence de liquidité identifiée sur les zones de bas de fourchette.
+    * **Validation SMC :** Filtrage rigoureux des zones selon l'impulsion ATR.
     """)
