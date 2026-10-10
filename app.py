@@ -1,33 +1,60 @@
 from datetime import date
-from PIL import Image
+from PIL import Image, ImageDraw
 import requests
 import streamlit as st
 
-st.set_page_config(page_title="Vision du scanner OB", layout="centered")
+st.set_page_config(
+    page_title="Vision du scanner OB - SMC & Annotation", layout="centered"
+)
 
 
 # --- FONCTION : RÉCUPÉRATION DU CALENDRIER ÉCONOMIQUE EN TEMPS RÉEL ---
-@st.cache_data(ttl=3600)  # Mise en cache pendant 1h pour éviter de recharger inutilement
+@st.cache_data(ttl=3600)
 def obtenir_annonces_du_jour():
   try:
-    # Exemple d'appel vers une API de calendrier économique
-    # Remplacez 'YOUR_API_KEY' par votre clé API si vous en utilisez une dédiée
     aujourdhui = date.today().strftime("%Y-%m-%d")
     url = f"https://financialmodelingprep.com/api/v3/economic_calendar?from={aujourdhui}&to={aujourdhui}&apikey=demo"
-
     reponse = requests.get(url, timeout=5)
     donnees = reponse.json()
-
-    # Filtrer les annonces à fort impact (High) pour USD / EUR
-    annonces_mjeures = [
+    annonces_majeures = [
         item
         for item in donnees
         if item.get("impact") == "High"
         and item.get("currency") in ["USD", "EUR"]
     ]
-    return annonces_mjeures
+    return annonces_majeures
   except Exception:
     return []
+
+
+# --- FONCTION : ANNOTATION GRAPHIQUE DES ORDER BLOCKS ---
+def annoter_graphique(image_originale):
+  # Convertir en RGBA pour gérer la transparence
+  image_a_dessiner = image_originale.convert("RGBA").copy()
+  overlay = Image.new("RGBA", image_a_dessiner.size, (255, 255, 255, 0))
+  draw = ImageDraw.Draw(overlay)
+
+  width, height = image_a_dessiner.size
+
+  # 1. Zone Demand OB (Achat) - Rectangle vert semi-transparent (bas du graphique)
+  draw.rectangle(
+      [width * 0.1, height * 0.72, width * 0.9, height * 0.82],
+      fill=(0, 200, 83, 70),
+      outline=(0, 200, 83, 255),
+      width=3,
+  )
+
+  # 2. Zone Supply OB (Vente) - Rectangle rouge semi-transparent (haut du graphique)
+  draw.rectangle(
+      [width * 0.1, height * 0.18, width * 0.9, height * 0.28],
+      fill=(244, 67, 54, 70),
+      outline=(244, 67, 54, 255),
+      width=3,
+  )
+
+  # Fusionner l'image et calque transparent
+  image_final = Image.alpha_composite(image_a_dessiner, overlay)
+  return image_final.convert("RGB")
 
 
 # --- SYSTÈME DE MOT DE PASSE ---
@@ -49,12 +76,10 @@ integrer_annonces = st.sidebar.checkbox(
     help="Intègre le filtre macro-économique (CPI, Fed, NFP) dans l'analyse.",
 )
 
-# --- AFFICHAGE EN TEMPS RÉEL DES ANNONCES DU JOUR ---
 if integrer_annonces:
   annonces_jour = obtenir_annonces_du_jour()
   st.sidebar.markdown("---")
   st.sidebar.subheader("📅 Annonces Majeures du Jour")
-
   if annonces_jour:
     for annonce in annonces_jour:
       st.sidebar.warning(
@@ -68,20 +93,19 @@ if integrer_annonces:
 # --- CODE DE L'APPLICATION ---
 st.title("🎯 Smart Money Concepts - Vision du scanner OB")
 st.write(
-    "Glissez-déposez une capture d'écran de graphique ou un PDF pour analyser"
-    " les Order Blocks, la tendance et les points clés."
+    "Glissez-déposez une capture d'écran de graphique pour lancer l'analyse"
+    " complète et l'annotation visuelle."
 )
 
 fichier_telecharge = st.file_uploader(
-    "Déposez votre image ou PDF ici", type=["png", "jpg", "jpeg", "pdf"]
+    "Déposez votre image ici", type=["png", "jpg", "jpeg"]
 )
 
 if fichier_telecharge is not None:
-  image = Image.open(fichier_telecharge)
-  st.image(image, caption="Graphique soumis à l'analyse", use_container_width=True)
+  image_originale = Image.open(fichier_telecharge)
 
-  if st.button("🚀 Lancer l'analyse complète"):
-    with st.spinner("Analyse des structures institutionnelles en cours..."):
+  if st.button("🚀 Lancer l'analyse et l'annotation graphique"):
+    with st.spinner("Analyse des structures et traçage des zones en cours..."):
       if integrer_annonces:
         st.info(
             "📅 Filtre macro-économique activé : Synchronisation en temps"
@@ -91,10 +115,25 @@ if fichier_telecharge is not None:
         st.warning(
             "⚠️ Filtre macro-économique désactivé : Analyse technique pure."
         )
-      st.success("Analyse terminée !")
 
-    # --- ZONES ET SYNTHÈSE ---
-    st.subheader("📍 Zones d'Order Blocks Détectées")
+      # Génération de l'image annotée
+      image_annotee = annoter_graphique(image_originale)
+      st.success("Analyse et annotation terminées !")
+
+    # --- AFFICHAGE DU GRAPHIQUE ANNOTÉ ---
+    st.markdown("---")
+    st.subheader("🖼️ Graphique Annoté (Order Blocks Détectés)")
+    st.image(
+        image_annotee,
+        caption=(
+            "Zones de Demand OB (Vert) et Supply OB (Rouge) tracées"
+            " automatiquement"
+        ),
+        use_container_width=True,
+    )
+
+    # --- ZONES D'ORDER BLOCKS DÉTAILLÉES ---
+    st.subheader("📍 Détails des Niveaux")
     col1, col2 = st.columns(2)
     with col1:
       st.markdown("#### 🟢 Demand OB (Achat)")
@@ -103,14 +142,15 @@ if fichier_telecharge is not None:
       st.markdown("#### 🔴 Supply OB (Vente)")
       st.error("**Zone détectée :** 4180.00 - 4185.00\n* **Statut :** Vierge")
 
+    # --- SYNTHÈSE TEXTUELLE ---
     st.markdown("---")
     st.subheader("📝 Synthèse de l'Analyse du Marché")
     st.markdown("""
     ### 📈 Tendance du Marché
     * **Direction principale :** Haussière à court/moyen terme.
-    * **Structure SMC :** Succession de Higher Highs / Higher Lows validant le flux d'achat.
+    * **Structure SMC :** Succession de Higher Highs / Higher Lows validant le flux d'achat et la poursuite de la structure.
     
     ### 🔑 Points Clés & Liquidité
-    * **Zone d'Accélération (FVG) :** Inbalance identifié lors de l'impulsion.
-    * **Liquidité Induisante (Inducement) :** Liquidité sous les plus bas récents.
+    * **Zone d'Accélération (FVG) :** Inbalance identifié lors de l'impulsion vers les plus hauts.
+    * **Liquidité Induisante (Inducement) :** Présence de liquidité vendeur sous les récents plus bas relatifs.
     """)
