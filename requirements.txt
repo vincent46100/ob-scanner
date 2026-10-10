@@ -1,5 +1,7 @@
 streamlit
 requests
 Pillow
+pandas
 numpy
-opencv-python-headless
+yfinance
+plotly
