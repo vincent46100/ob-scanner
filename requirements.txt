@@ -1,7 +1,4 @@
 streamlit
 requests
 Pillow
-pandas
-numpy
-yfinance
-plotly
+google-generativeai
