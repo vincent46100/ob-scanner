@@ -52,7 +52,7 @@ st.markdown("""
 st.markdown("""
     <div class="main-header">
         <h1>SMC IA</h1>
-        <p>Smart Money Concepts</p>
+        <p>Smart Money Concepts — Terminal d'Analyse Avancée</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -65,9 +65,20 @@ if entree_mot_de_passe != "Cecile46*":
   st.warning("Veuillez entrer le mot de passe valide.")
   st.stop()
 
+# --- CONFIGURATION CLÉ API GEMINI ---
+# Vous pouvez configurer votre clé directement ou via st.secrets["GEMINI_API_KEY"]
+# Assurez-vous d'avoir configuré votre clé secrète dans Streamlit Cloud.
+try:
+  genai.configure(apiKey=st.secrets["GEMINI_API_KEY"])
+except Exception:
+  # Fallback si configuré par variable d'environnement ou autre méthode
+  pass
+
 # --- GESTION DE L'ÉTAT (SESSION STATE) ---
 if "dernier_fichier" not in st.session_state:
   st.session_state.dernier_fichier = None
+if "resultat_analyse" not in st.session_state:
+  st.session_state.resultat_analyse = None
 
 # --- NAVIGATION / ONGLETS ---
 onglet_choisi = st.radio(
@@ -88,14 +99,14 @@ if onglet_choisi == "🔍 Analyste":
       "Dépose ta capture ici", type=["png", "jpg", "jpeg"], label_visibility="collapsed"
   )
 
-  # Réinitialisation si le fichier change
+  # Réinitialisation si l'utilisateur change de fichier
   if fichier_telecharge != st.session_state.dernier_fichier:
     st.session_state.dernier_fichier = fichier_telecharge
-    st.session_state.lancer_analyse = False
+    st.session_state.resultat_analyse = None
 
   notes_utilisateur = st.text_area(
-      "Notes (optionnel) :",
-      placeholder="Ex : Timeframe 1H, contexte macro...",
+      "Remarques (facultatives) :",
+      placeholder="Ex : Période 1H, contexte macro...",
       height=80,
   )
 
@@ -107,74 +118,69 @@ if onglet_choisi == "🔍 Analyste":
     with col1:
       if st.button("🗑️ Supprimer"):
         st.session_state.dernier_fichier = None
-        st.session_state.lancer_analyse = False
+        st.session_state.resultat_analyse = None
         st.rerun()
     with col2:
       if st.button("🔄 Remplacer"):
         st.session_state.dernier_fichier = None
-        st.session_state.lancer_analyse = False
+        st.session_state.resultat_analyse = None
         st.rerun()
 
     st.markdown("---")
 
     if st.button("🔍 Analyser le graphique"):
-      st.session_state.lancer_analyse = True
-
-    # Affichage permanent du résultat une fois le bouton cliqué
-    if st.session_state.get("lancer_analyse", False):
       with st.spinner(
-          "🧠 L'IA analyse en détail la structure SMC, les liquidités et les"
-          " Order Blocks..."
+          "🧠 Analyse approfondie des bougies, des Order Blocks et de la"
+          " structure SMC en cours..."
       ):
-        st.success("Analyse SMC approfondie terminée avec succès !")
+        try:
+          # Appel au modèle multimodal Gemini 1.5 Flash pour analyser l'image transmise
+          modele = genai.GenerativeModel("gemini-1.5-flash")
 
-      st.markdown("### 📊 Résultat de l'Analyse")
-      st.markdown(
-          "**Analyse SMC — Unité de Temps & Actif détectés sur le graphique**"
-      )
+          prompt_systeme = (
+              "Agis en tant qu'analyste quantitatif expert en Smart Money"
+              " Concepts (SMC) et Price Action. Analyse précisément le graphique"
+              " de trading fourni en image. Fournis une analyse détaillée au"
+              " format Markdown structuré comprenant :"
+              " 1. VUE D'ENSEMBLE (description de l'actif, unité de temps"
+              " apparente si visible, dynamique générale et phases)."
+              " 2. STRUCTURE DE MARCHÉ (Biais directionnel, phase, dernier"
+              " événement type BOS ou ChoCH, et les points clés HH, LH, HL, LL"
+              " relevés sur l'axe des prix)."
+              " 3. ANALYSE DE LIQUIDITÉ (Buy-Side et Sell-Side Liquidity BSL/SSL"
+              " identifiées)."
+              " 4. POINTS D'INTÉRÊT / ORDER BLOCKS (Liste des Demand OB et Supply"
+              " OB avec leur force en étoiles ★ et leurs niveaux de prix exacts"
+              " estimés d'après l'échelle de droite)."
+              " 5. SCÉNARIO PRINCIPAL et SCÉNARIO ALTERNATIF (avec probabilités"
+              " estimées et cibles chiffrées)."
+              " 6. CONCLUSION et niveau de confiance global /10."
+          )
 
+          contents = [prompt_systeme, image_originale]
+          if notes_utilisateur:
+            contents.append(f"Notes complémentaires du trader : {notes_utilisateur}")
+
+          reponse = modele.generate_content(contents)
+          st.session_state.resultat_analyse = reponse.text
+          st.success("Analyse SMC approfondie terminée avec succès !")
+
+        except Exception as e:
+          st.error(
+              "Erreur lors de l'analyse avec l'IA. Vérifiez votre clé API"
+              f" Gemini dans les secrets Streamlit : {e}"
+          )
+
+    # Affichage du résultat généré dynamiquement par l'IA
+    if st.session_state.resultat_analyse:
       st.markdown("---")
-      st.markdown("#### 🌍 VUE D'ENSEMBLE")
-      st.write(
-          "L'examen de ce graphique met en évidence une structure propre à"
-          " cette unité de temps. Les zones d'Order Blocks et de liquidité ont"
-          " été recalculées spécifiquement d'après les bougies fournies."
-      )
-
-      st.markdown("---")
-      st.markdown("#### 📉 STRUCTURE DE MARCHÉ")
-
-      st.markdown("""
-        | Élément | Observation |
-        | :--- | :--- |
-        | **Biais directionnel** | ⚡ Dynamique active sur ce timeframe |
-        | **Phase** | Impulsion / Retest institutionnel |
-        | **Dernier événement** | BOS / ChoCH identifié sur la période |
-        """)
-
-      st.markdown("---")
-      st.markdown("#### 🎯 POINTS D'INTÉRÊT (OB & FVG)")
-      st.markdown("""
-        | Zone | Type | Force | Niveau |
-        | :--- | :--- | :--- | :--- |
-        | Bougie impulsive récente | **Demand OB** | ★★★★ | Zone fraîche non mitigée |
-        | Rejet institutionnel haut | **Supply OB** | ★★★☆ | Résistance active |
-        """)
-
-      st.markdown("---")
-      st.markdown("#### 📋 SCÉNARIO PRINCIPAL")
-      st.info(
-          "**Plan de positionnement :** Attente d'un retest propre sur la zone"
-          " d'Order Block fraîchement identifiée sur cette unité de temps avec"
-          " confirmation en Lower Timeframe (LTF)."
-      )
-
-      st.success("**Confiance globale : 7.0/10**")
+      st.markdown("### 📊 Résultat de l'Analyse Détaillée")
+      st.markdown(st.session_state.resultat_analyse)
 
   else:
     st.info(
-        "👆 Veuillez déposer une capture d'écran pour lancer l'analyse"
-        " détaillée."
+        "👆 Veuillez déposer une capture d'écran de votre graphique pour lancer"
+        " l'analyse personnalisée."
     )
 
 else:
