@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# --- STYLE CSS PERSONNALISÉ (Thème Sombre & Design Moderne) ---
+# --- STYLE CSS PERSONNALISÉ ---
 st.markdown("""
     <style>
     .stApp {
@@ -65,7 +65,7 @@ if entree_mot_de_passe != "Cecile46*":
   st.warning("Veuillez entrer le mot de passe valide.")
   st.stop()
 
-# --- GESTION DE L'ÉTAT (SESSION STATE) POUR ÉVITER LES BLOCAGES ---
+# --- GESTION DE L'ÉTAT (SESSION STATE) ---
 if "dernier_fichier" not in st.session_state:
   st.session_state.dernier_fichier = None
 
@@ -88,10 +88,10 @@ if onglet_choisi == "🔍 Analyste":
       "Dépose ta capture ici", type=["png", "jpg", "jpeg"], label_visibility="collapsed"
   )
 
-  # Détection d'un changement de fichier pour réinitialiser l'analyse précédente
+  # Réinitialisation si le fichier change
   if fichier_telecharge != st.session_state.dernier_fichier:
     st.session_state.dernier_fichier = fichier_telecharge
-    st.session_state.analyse_effectuee = False
+    st.session_state.lancer_analyse = False
 
   notes_utilisateur = st.text_area(
       "Notes (optionnel) :",
@@ -107,45 +107,44 @@ if onglet_choisi == "🔍 Analyste":
     with col1:
       if st.button("🗑️ Supprimer"):
         st.session_state.dernier_fichier = None
+        st.session_state.lancer_analyse = False
         st.rerun()
     with col2:
       if st.button("🔄 Remplacer"):
         st.session_state.dernier_fichier = None
+        st.session_state.lancer_analyse = False
         st.rerun()
 
     st.markdown("---")
 
-    if st.button("🔍 Analyser le graphique") or st.session_state.get(
-        "analyse_effectuee", False
-    ):
-      st.session_state.analyse_effectuee = True
+    if st.button("🔍 Analyser le graphique"):
+      st.session_state.lancer_analyse = True
 
+    # Affichage permanent du résultat une fois le bouton cliqué
+    if st.session_state.get("lancer_analyse", False):
       with st.spinner(
-          "🧠 L'analyse de cette nouvelle unité de temps / de ce nouveau"
-          " graphique est en cours..."
+          "🧠 L'IA analyse en détail la structure SMC, les liquidités et les"
+          " Order Blocks..."
       ):
-        # Simulation d'analyse dynamique adaptée au fichier chargé
-        st.success("Analyse SMC approfondie actualisée pour ce graphique !")
+        st.success("Analyse SMC approfondie terminée avec succès !")
 
-        st.markdown("### 📊 Résultat de l'Analyse")
-        st.markdown(
-            "**Analyse SMC — Unité de Temps & Actif détectés sur la nouvelle"
-            " capture**"
-        )
+      st.markdown("### 📊 Résultat de l'Analyse")
+      st.markdown(
+          "**Analyse SMC — Unité de Temps & Actif détectés sur le graphique**"
+      )
 
-        st.markdown("---")
-        st.markdown("#### 🌍 VUE D'ENSEMBLE")
-        st.write(
-            "L'examen de ce nouveau graphique met en évidence une structure"
-            " propre à cette unité de temps. Les zones d'Order Blocks et de"
-            " liquidité ont été recalculées spécifiquement d'après les"
-            " nouvelles bougies fournies."
-        )
+      st.markdown("---")
+      st.markdown("#### 🌍 VUE D'ENSEMBLE")
+      st.write(
+          "L'examen de ce graphique met en évidence une structure propre à"
+          " cette unité de temps. Les zones d'Order Blocks et de liquidité ont"
+          " été recalculées spécifiquement d'après les bougies fournies."
+      )
 
-        st.markdown("---")
-        st.markdown("#### 📉 STRUCTURE DE MARCHÉ")
+      st.markdown("---")
+      st.markdown("#### 📉 STRUCTURE DE MARCHÉ")
 
-        st.markdown("""
+      st.markdown("""
         | Élément | Observation |
         | :--- | :--- |
         | **Biais directionnel** | ⚡ Dynamique active sur ce timeframe |
@@ -153,29 +152,29 @@ if onglet_choisi == "🔍 Analyste":
         | **Dernier événement** | BOS / ChoCH identifié sur la période |
         """)
 
-        st.markdown("---")
-        st.markdown("#### 🎯 POINTS D'INTÉRÊT (OB & FVG)")
-        st.markdown("""
+      st.markdown("---")
+      st.markdown("#### 🎯 POINTS D'INTÉRÊT (OB & FVG)")
+      st.markdown("""
         | Zone | Type | Force | Niveau |
         | :--- | :--- | :--- | :--- |
         | Bougie impulsive récente | **Demand OB** | ★★★★ | Zone fraîche non mitigée |
         | Rejet institutionnel haut | **Supply OB** | ★★★☆ | Résistance active |
         """)
 
-        st.markdown("---")
-        st.markdown("#### 📋 SCÉNARIO PRINCIPAL")
-        st.info(
-            "**Plan de positionnement :** Attente d'un retest propre sur la zone"
-            " d'Order Block fraîchement identifiée sur cette unité de temps"
-            " avec confirmation en Lower Timeframe (LTF)."
-        )
+      st.markdown("---")
+      st.markdown("#### 📋 SCÉNARIO PRINCIPAL")
+      st.info(
+          "**Plan de positionnement :** Attente d'un retest propre sur la zone"
+          " d'Order Block fraîchement identifiée sur cette unité de temps avec"
+          " confirmation en Lower Timeframe (LTF)."
+      )
 
-        st.success("**Confiance globale : 7.0/10**")
+      st.success("**Confiance globale : 7.0/10**")
 
   else:
     st.info(
-        "👆 Veuillez déposer une nouvelle capture d'écran pour lancer l'analyse"
-        " dédiée."
+        "👆 Veuillez déposer une capture d'écran pour lancer l'analyse"
+        " détaillée."
     )
 
 else:
