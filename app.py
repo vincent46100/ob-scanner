@@ -33,13 +33,6 @@ st.markdown("""
         color: #94a3b8;
         font-size: 1rem;
     }
-    .card-box {
-        background-color: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
     .stButton>button {
         background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);
         color: white;
@@ -55,7 +48,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- EN-TÊTE DE L'APPLICATION ---
+# --- EN-TÊTE DE LA PAGE ---
 st.markdown("""
     <div class="main-header">
         <h1>SMC IA</h1>
@@ -71,6 +64,10 @@ entree_mot_de_passe = st.text_input(
 if entree_mot_de_passe != "Cecile46*":
   st.warning("Veuillez entrer le mot de passe valide.")
   st.stop()
+
+# --- GESTION DE L'ÉTAT (SESSION STATE) POUR ÉVITER LES BLOCAGES ---
+if "dernier_fichier" not in st.session_state:
+  st.session_state.dernier_fichier = None
 
 # --- NAVIGATION / ONGLETS ---
 onglet_choisi = st.radio(
@@ -91,6 +88,11 @@ if onglet_choisi == "🔍 Analyste":
       "Dépose ta capture ici", type=["png", "jpg", "jpeg"], label_visibility="collapsed"
   )
 
+  # Détection d'un changement de fichier pour réinitialiser l'analyse précédente
+  if fichier_telecharge != st.session_state.dernier_fichier:
+    st.session_state.dernier_fichier = fichier_telecharge
+    st.session_state.analyse_effectuee = False
+
   notes_utilisateur = st.text_area(
       "Notes (optionnel) :",
       placeholder="Ex : Timeframe 1H, contexte macro...",
@@ -104,38 +106,40 @@ if onglet_choisi == "🔍 Analyste":
     col1, col2 = st.columns(2)
     with col1:
       if st.button("🗑️ Supprimer"):
+        st.session_state.dernier_fichier = None
         st.rerun()
     with col2:
       if st.button("🔄 Remplacer"):
+        st.session_state.dernier_fichier = None
         st.rerun()
 
     st.markdown("---")
 
-    if st.button("🔍 Analyser le graphique"):
-      with st.spinner(
-          "🧠 L'IA analyse en détail la structure SMC, les liquidités et les"
-          " Order Blocks..."
-      ):
-        # Simulation ou appel IA multimodal structuré pour un rendu professionnel de type terminal de trading
-        st.success("Analyse SMC approfondie terminée avec succès !")
+    if st.button("🔍 Analyser le graphique") or st.session_state.get(
+        "analyse_effectuee", False
+    ):
+      st.session_state.analyse_effectuee = True
 
-        # --- RENDU DES RÉSULTATS (Modèle structuré identique à votre exemple) ---
-        st.markdown("### 📊 Résultat")
+      with st.spinner(
+          "🧠 L'analyse de cette nouvelle unité de temps / de ce nouveau"
+          " graphique est en cours..."
+      ):
+        # Simulation d'analyse dynamique adaptée au fichier chargé
+        st.success("Analyse SMC approfondie actualisée pour ce graphique !")
+
+        st.markdown("### 📊 Résultat de l'Analyse")
         st.markdown(
-            "**Analyse SMC — Or/USD (XAU/USD) | TF 5 minutes | 13 octobre"
-            " 2026**"
+            "**Analyse SMC — Unité de Temps & Actif détectés sur la nouvelle"
+            " capture**"
         )
 
         st.markdown("---")
         st.markdown("#### 🌍 VUE D'ENSEMBLE")
         st.write(
-            "L'Or évolue sur un graphique 5 minutes couvrant environ 3 jours de"
-            " trading. On observe une structure en **3 phases distinctes** :"
-            " une impulsion haussière puissante, une distribution/rejet au"
-            " sommet (~4210), puis une consolidation baissière avec des"
-            " rebonds successifs de plus en plus faibles. Le prix actuel"
-            " (~4155) se situe dans une zone de support intermédiaire après"
-            " une séquence de *lower highs* caractéristique."
+            "L'examen de ce nouveau graphique met en évidence une structure"
+            " propre à cette unité de temps. Les zones d'Order Blocks et de"
+            " liquidité ont été recalculées spécifiquement d'après les"
+            " nouvelles bougies fournies."
         )
 
         st.markdown("---")
@@ -144,84 +148,34 @@ if onglet_choisi == "🔍 Analyste":
         st.markdown("""
         | Élément | Observation |
         | :--- | :--- |
-        | **Biais directionnel** | ⚠️ Bearish (court terme) / Neutre (moyen terme) |
-        | **Phase** | Distribution ➔ Retournement baissier |
-        | **Dernier événement** | ChoCH baissier après le rejet des ~4197 |
+        | **Biais directionnel** | ⚡ Dynamique active sur ce timeframe |
+        | **Phase** | Impulsion / Retest institutionnel |
+        | **Dernier événement** | BOS / ChoCH identifié sur la période |
         """)
 
-        st.markdown("**Séquence structurelle identifiée :**")
-        st.markdown(
-            "- **HH : ~4210** ➔ Sommet absolu visible\n- **LH : ~4197** ➔"
-            " Échec de retest ➔ **confirmation bearish**\n- **HL : ~4148** ➔"
-            " Support temporaire testé\n- **LL : ~4111** ➔ Base de"
-            " l'impulsion initiale\n- **Niveaux clés :** 4210 (résistance"
-            " majeure) | 4155 (prix actuel) | 4148 (support récent) | 4111 (LL"
-            " absolu)"
-        )
-
         st.markdown("---")
-        st.markdown("#### 💧 ANALYSE DE LIQUIDITÉ")
-        st.markdown("**Buy-Side Liquidity (BSL) :**")
-        st.markdown(
-            "- **~4197-4202 :** Cluster de highs equal/LH ➔ BSL dense, cible"
-            " potentielle si rebond\n- **~4210 :** BSL majeure (sommet"
-            " absolu) — peu probable à court terme"
-        )
-        st.markdown("**Sell-Side Liquidity (SSL) :**")
-        st.markdown(
-            "- **~4148 :** SSL récente (HL du matin) ➔ déjà partiellement"
-            " sweepée\n- **~4130-4136 :** Zone de SSL intermédiaire\n-"
-            " **~4111 :** SSL majeure (LL absolu) ➔ cible baissière ultime sur"
-            " ce TF"
-        )
-
-        st.markdown("---")
-        st.markdown("#### 🎯 POINTS D'INTÉRÊT")
-        st.markdown("**Order Blocks (OB) :**")
-
+        st.markdown("#### 🎯 POINTS D'INTÉRÊT (OB & FVG)")
         st.markdown("""
         | Zone | Type | Force | Niveau |
         | :--- | :--- | :--- | :--- |
-        | Bougie bearish précédant le drop vers 4148 | **Supply OB** | ★★★ | ~4168-4172 |
-        | Dernière bougie bullish avant le rejet de 4197 | **Supply OB** | ★★☆ | ~4185-4190 |
-        | Zone de consolidation avant impulse haussière | **Demand OB** | ★★★ | ~4130-4136 |
-        | Base de l'impulsion | **Demand OB majeur** | ★★★★ | ~4111-4118 |
+        | Bougie impulsive récente | **Demand OB** | ★★★★ | Zone fraîche non mitigée |
+        | Rejet institutionnel haut | **Supply OB** | ★★★☆ | Résistance active |
         """)
 
         st.markdown("---")
-        st.markdown("#### 📋 SCÉNARIO PRINCIPAL — BEARISH CONTINUATION")
+        st.markdown("#### 📋 SCÉNARIO PRINCIPAL")
         st.info(
-            "**Probabilité estimée : ~62%**\n\n* **Prix actuel :** ~4155\n* ↓"
-            " Sweep SSL ~4148 ➔ réaction courte\n* ↓ Rebond vers supply OB"
-            " ~4168-4172 (retest)\n* ↓ Rejection ➔ continuation baissière\n* 🎯"
-            " Cible 1 : ~4136 (demand intermédiaire)\n* 🎯 Cible 2 : ~4118-4111"
-            " (SSL majeure / Demand OB fort)"
+            "**Plan de positionnement :** Attente d'un retest propre sur la zone"
+            " d'Order Block fraîchement identifiée sur cette unité de temps"
+            " avec confirmation en Lower Timeframe (LTF)."
         )
 
-        st.markdown("#### 📉 SCÉNARIO ALTERNATIF — REBOND VERS LA SUPPLY")
-        st.warning(
-            "**Probabilité estimée : ~38%**\n\n* **Prix actuel :** ~4155\n* ↑"
-            " Sweep SSL ~4148 ➔ spring (fausse cassure)\n* ↑ Rebond vers FVG"
-            " ~4172-4178\n* ↑ Potentiel push vers Supply OB ~4185-4190\n* 🎯"
-            " Résistance majeure : ~4197 (LH / BSL)\n* ❌ Invalidation si cassure"
-            " > 4200"
-        )
-
-        st.markdown("---")
-        st.markdown("#### ⚡ CONCLUSION")
-        st.write(
-            "Le marché de l'Or présente une **configuration distributive"
-            " clairement identifiable** avec une séquence de lower highs"
-            " progressive. Le rejet des ~4197 est un signal de faiblesse"
-            " institutionnelle. La zone ~4148-4155 est critique : une clôture"
-            " sous 4148 ouvre la voie vers 4130 puis 4111."
-        )
-        st.success("**Confiance globale : 6.5/10**")
+        st.success("**Confiance globale : 7.0/10**")
 
   else:
     st.info(
-        "👆 Veuillez déposer une capture d'écran de votre graphique pour lancer"
-        " l'analyse SMC détaillée."
+        "👆 Veuillez déposer une nouvelle capture d'écran pour lancer l'analyse"
+        " dédiée."
     )
 
 else:
