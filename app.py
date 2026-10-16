@@ -151,11 +151,22 @@ if onglet_choisi == "🔍 Analyste":
               " 3. ANALYSE DE LIQUIDITÉ (Buy-Side et Sell-Side Liquidity BSL/SSL"
               " identifiées)."
               " 4. POINTS D'INTÉRÊT / ORDER BLOCKS (Liste des Demand OB et Supply"
-              " OB avec leur force en étoiles ★ et leurs niveaux de prix exacts"
+              " OB avec leur force en étoiles et leurs niveaux de prix exacts"
               " estimés d'après l'échelle de droite)."
               " 5. SCÉNARIO PRINCIPAL et SCÉNARIO ALTERNATIF (avec probabilités"
               " estimées et cibles chiffrées)."
               " 6. CONCLUSION et niveau de confiance global /10."
+              " IMPÉRATIF DE MISE EN FORME COULEUR (HTML) :"
+              " - Pour toutes les étoiles de notation de force (ex: ★★★★★ ou"
+              " ★★★★☆), entoure-les impérativement d'une balise HTML avec une"
+              " couleur dorée éclatante : <span style='color: #fbbf24;"
+              " font-weight: bold;'>★★★★★</span>."
+              " - Pour tous les points clés importants (niveaux de prix"
+              " essentiels, zones de prix, sigles majeurs comme BOS, ChoCH,"
+              " BSL, SSL), entoure-les d'une balise HTML avec une couleur"
+              " violette/magenta claire : <span style='color: #c084fc;"
+              " font-weight: bold;'>...</span> pour qu'ils ressortent"
+              " instantanément à l'œil."
           )
 
           contents = [prompt_systeme, image_originale]
@@ -175,7 +186,7 @@ if onglet_choisi == "🔍 Analyste":
     if st.session_state.resultat_analyse:
       st.markdown("---")
       st.markdown("### 📊 Résultat de l'Analyse Détaillée")
-      st.markdown(st.session_state.resultat_analyse)
+      st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
 
   else:
     st.info(
