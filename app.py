@@ -76,6 +76,8 @@ if "dernier_fichier" not in st.session_state:
   st.session_state.dernier_fichier = None
 if "resultat_analyse" not in st.session_state:
   st.session_state.resultat_analyse = None
+if "file_uploader_key" not in st.session_state:
+  st.session_state.file_uploader_key = 0
 
 # --- NAVIGATION ---
 onglet_choisi = st.radio(
@@ -93,7 +95,10 @@ if onglet_choisi == "🔍 Analyste":
   )
 
   fichier_telecharge = st.file_uploader(
-      "Dépose ta capture ici", type=["png", "jpg", "jpeg"], label_visibility="collapsed"
+      "Dépose ta capture ici",
+      type=["png", "jpg", "jpeg"],
+      label_visibility="collapsed",
+      key=f"uploader_{st.session_state.file_uploader_key}",
   )
 
   if fichier_telecharge != st.session_state.dernier_fichier:
@@ -120,6 +125,7 @@ if onglet_choisi == "🔍 Analyste":
       if st.button("🔄 Remplacer"):
         st.session_state.dernier_fichier = None
         st.session_state.resultat_analyse = None
+        st.session_state.file_uploader_key += 1
         st.rerun()
 
     st.markdown("---")
