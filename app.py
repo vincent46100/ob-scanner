@@ -130,7 +130,7 @@ if onglet_choisi == "🔍 Analyste":
           " structure SMC en cours..."
       ):
         try:
-          modele = genai.GenerativeModel("gemini-3.8-flas")
+          modele = genai.GenerativeModel("gemini-3.8-flash")
 
           prompt_systeme = (
               "Agis en tant qu'analyste quantitatif expert en Smart Money"
