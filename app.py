@@ -7,7 +7,7 @@ import streamlit as st
 
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(
-    page_title="SMC IA — Smart Money Concepts",
+    page_title="Scanner AI Vincent — Smart Money Concepts",
     page_icon="💧",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -51,7 +51,7 @@ st.markdown("""
 # --- EN-TÊTE DE LA PAGE ---
 st.markdown("""
     <div class="main-header">
-        <h1>SMC IA</h1>
+        <h1>Scanner AI Vincent</h1>
         <p>Smart Money Concepts — Terminal d'Analyse Avancée</p>
     </div>
 """, unsafe_allow_html=True)
