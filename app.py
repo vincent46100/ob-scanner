@@ -66,21 +66,18 @@ if entree_mot_de_passe != "Cecile46*":
   st.stop()
 
 # --- CONFIGURATION CLÉ API GEMINI ---
-# Vous pouvez configurer votre clé directement ou via st.secrets["GEMINI_API_KEY"]
-# Assurez-vous d'avoir configuré votre clé secrète dans Streamlit Cloud.
 try:
-  genai.configure(apiKey=st.secrets["GEMINI_API_KEY"])
+  genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 except Exception:
-  # Fallback si configuré par variable d'environnement ou autre méthode
   pass
 
-# --- GESTION DE L'ÉTAT (SESSION STATE) ---
+# --- GESTION DE L'ÉTAT ---
 if "dernier_fichier" not in st.session_state:
   st.session_state.dernier_fichier = None
 if "resultat_analyse" not in st.session_state:
   st.session_state.resultat_analyse = None
 
-# --- NAVIGATION / ONGLETS ---
+# --- NAVIGATION ---
 onglet_choisi = st.radio(
     "Navigation", ["🔍 Analyste", "🧠 Coach"], horizontal=True, label_visibility="collapsed"
 )
@@ -99,7 +96,6 @@ if onglet_choisi == "🔍 Analyste":
       "Dépose ta capture ici", type=["png", "jpg", "jpeg"], label_visibility="collapsed"
   )
 
-  # Réinitialisation si l'utilisateur change de fichier
   if fichier_telecharge != st.session_state.dernier_fichier:
     st.session_state.dernier_fichier = fichier_telecharge
     st.session_state.resultat_analyse = None
@@ -134,7 +130,6 @@ if onglet_choisi == "🔍 Analyste":
           " structure SMC en cours..."
       ):
         try:
-          # Appel au modèle multimodal Gemini 1.5 Flash pour analyser l'image transmise
           modele = genai.GenerativeModel("gemini-2.5-flash")
 
           prompt_systeme = (
@@ -171,7 +166,6 @@ if onglet_choisi == "🔍 Analyste":
               f" Gemini dans les secrets Streamlit : {e}"
           )
 
-    # Affichage du résultat généré dynamiquement par l'IA
     if st.session_state.resultat_analyse:
       st.markdown("---")
       st.markdown("### 📊 Résultat de l'Analyse Détaillée")
