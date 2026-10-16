@@ -135,7 +135,7 @@ if onglet_choisi == "🔍 Analyste":
       ):
         try:
           # Appel au modèle multimodal Gemini 1.5 Flash pour analyser l'image transmise
-          modele = genai.GenerativeModel("gemini-1.5-flash")
+          modele = genai.GenerativeModel("gemini-2.5-flash")
 
           prompt_systeme = (
               "Agis en tant qu'analyste quantitatif expert en Smart Money"
