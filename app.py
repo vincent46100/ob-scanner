@@ -175,13 +175,4 @@ if onglet_choisi == "🔍 Analyste":
               " <div style='background-color: #0b0d1b; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; margin-top: 25px;'>"
               " <h4 style='color: #ffffff; font-weight: bold; margin-bottom: 15px;'>✅ Liste de contrôle — Bonne capture</h4>"
               " <p style='color: #c084fc; margin: 6px 0;'>✓ Période visible</p>"
-              " <p style='color: #c084fc; margin: 6px 0;'>✓ Échelle de prix lisible</p>"
-              " <p style='color: #c084fc; margin: 6px 0;'>✓ 50 à 100 bougies minimum</p>"
-              " <p style='color: #c084fc; margin: 6px 0;'>✓ Pas d'indicateurs superflus</p>"
-              " <p style='color: #c084fc; margin: 6px 0;'>✓ Volumes visibles (si possible)</p>"
-              " </div>"
-              " "
-              " RÈGLES GÉNÉRALES DE COULEUR (HTML) POUR TOUT LE RAPPORT :"
-              " - Les titres des 6 sections DOIVENT être en bleu clair <h3 style='color: #38bdf8; font-weight: bold;'>...</h3>."
-              " - Pour TOUS les points clés, niveaux de prix, unités de temps et termes SMC majeurs (BOS, ChoCH, BSL, SSL, Order Block, HH, LH, HL, LL), entoure-les d'une balise HTML violette : <span style='color: #c084fc; font-weight: bold;'>...</span>."
-              " - Pour toutes les étoiles de notation de force (ex: ★★★★★), entoure-les d'une balise HTML dorée : <span style='color: #fbbf24; font-weight:
+              " <p style='color: #c084fc; margin: 6px
