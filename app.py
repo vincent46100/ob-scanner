@@ -46,13 +46,14 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Style sobre et harmonisé pour tous les conteneurs Streamlit */
-    [data-testid="stForm"], [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #0b0f19 !important;
-        border: 1px solid #1e294b !important;
-        border-radius: 12px !important;
-        padding: 25px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    /* Notre bel encadré bleu nuit sobre et harmonieux */
+    .custom-card {
+        background-color: #0b0f19;
+        border: 1px solid #1e294b;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -99,48 +100,56 @@ if onglet_choisi == "🔍 Analyste":
   
   lancer_analyse = False
   
-  # --- ENCADRÉ GLOBAL DU HAUT (FORMULAIRE) ---
-  with st.form(key="formulaire_analyse"):
-    st.markdown("### 🖼️ Dépose ta capture d'écran")
-    st.markdown(
-        "<p style='color: #94a3b8; font-size: 0.9rem;'>Glisse ou sélectionne la capture de ton graphique</p>",
-        unsafe_allow_html=True,
-    )
+  # --- ENCADRÉ GLOBAL BLEU NUIT SOBRE ---
+  st.markdown('<div class="custom-card">', unsafe_allow_html=True)
+  
+  st.markdown("### 🖼️ Dépose ta capture d'écran")
+  st.markdown(
+      "<p style='color: #94a3b8; font-size: 0.9rem;'>Glisse ou sélectionne la capture de ton graphique</p>",
+      unsafe_allow_html=True,
+  )
 
-    fichier_telecharge = st.file_uploader(
-        "Dépose ta capture ici",
-        type=["png", "jpg", "jpeg"],
-        label_visibility="collapsed",
-        key=f"uploader_{st.session_state.file_uploader_key}",
-    )
+  fichier_telecharge = st.file_uploader(
+      "Dépose ta capture ici",
+      type=["png", "jpg", "jpeg"],
+      label_visibility="collapsed",
+      key=f"uploader_{st.session_state.file_uploader_key}",
+  )
 
-    if fichier_telecharge != st.session_state.dernier_fichier:
-      st.session_state.dernier_fichier = fichier_telecharge
-      st.session_state.resultat_analyse = None
-
-    if fichier_telecharge is not None:
-      image_originale = Image.open(fichier_telecharge)
-      st.image(image_originale, caption="Capture soumise à l'analyse", use_container_width=True)
-
-    notes_utilisateur = st.text_area(
-        "Remarques (facultatives) :",
-        placeholder="Ex : Période 1H, contexte macro...",
-        height=80,
-    )
-
-    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
-    
-    soumettre_formulaire = st.form_submit_button("🔍 Analyser le graphique")
+  if fichier_telecharge != st.session_state.dernier_fichier:
+    st.session_state.dernier_fichier = fichier_telecharge
+    st.session_state.resultat_analyse = None
 
   if fichier_telecharge is not None:
-    if st.button("🔄 Remplacer la capture"):
-      st.session_state.dernier_fichier = None
-      st.session_state.resultat_analyse = None
-      st.session_state.file_uploader_key += 1
-      st.rerun()
+    image_originale = Image.open(fichier_telecharge)
+    st.image(image_originale, caption="Capture soumise à l'analyse", use_container_width=True)
 
-  if soumettre_formulaire and fichier_telecharge is not None:
-    lancer_analyse = True
+  notes_utilisateur = st.text_area(
+      "Remarques (facultatives) :",
+      placeholder="Ex : Période 1H, contexte macro...",
+      height=80,
+  )
+
+  st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+  # Boutons "Remplacer" et "Analyser" côte à côte avec le beau design violet
+  if fichier_telecharge is not None:
+    col1, col2 = st.columns(2)
+    with col1:
+      if st.button("🔄 Remplacer la capture"):
+        st.session_state.dernier_fichier = None
+        st.session_state.resultat_analyse = None
+        st.session_state.file_uploader_key += 1
+        st.rerun()
+    with col2:
+      lancer_analyse = st.button("🔍 Analyser le graphique")
+  else:
+    # S'il n'y a pas encore de fichier, on centre le bouton d'analyse ou on le laisse prendre sa place
+    col_g, col_c, col_d = st.columns([1, 2, 1])
+    with col_c:
+      lancer_analyse = st.button("🔍 Analyser le graphique")
+
+  st.markdown('</div>', unsafe_allow_html=True)  # Fin de l'encadré bleu nuit
 
   # --- TRAITEMENT GEMINI ---
   if lancer_analyse and fichier_telecharge is not None:
@@ -210,8 +219,9 @@ if onglet_choisi == "🔍 Analyste":
   # --- ENCADRÉ RÉSULTAT DE L'ANALYSE ---
   if st.session_state.resultat_analyse:
     st.markdown("### 📊 Résultat de l'Analyse Détaillée")
-    with st.container(border=True):
-      st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
+    st.markdown('<div class="custom-card">', unsafe_allow_html=True)
+    st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 else:
   st.markdown("### 🧠 Coach SMC & Mentorat")
