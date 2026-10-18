@@ -154,8 +154,8 @@ if onglet_choisi == "🔍 Analyste":
   if lancer_analyse and fichier_telecharge is not None:
     with st.spinner("🧠 Analyse approfondie des bougies, des Order Blocks et de la structure SMC en cours..."):
       try:
-        # Utilisation de gemini-1.5-flash pour repartir sur un quota frais
-        modele = genai.GenerativeModel("gemini-1.5-flash")
+        # Modèle mis à jour et compatible
+        modele = genai.GenerativeModel("gemini-2.5-flash")
 
         prompt_systeme = (
             "Agis en tant qu'analyste quantitatif expert en Smart Money Concepts (SMC) et Price Action. "
