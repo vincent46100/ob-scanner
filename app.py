@@ -46,13 +46,12 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* VRAI encadré bleu nuit contrasté sur fond noir */
-    .custom-card {
+    /* Style forcé pour les formulaires/conteneurs Streamlit en bleu nuit */
+    [data-testid="stForm"], [data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #0d1b3e !important;
         border: 2px solid #3b82f6 !important;
         border-radius: 14px !important;
         padding: 25px !important;
-        margin-bottom: 25px !important;
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8) !important;
     }
     </style>
@@ -100,51 +99,50 @@ if onglet_choisi == "🔍 Analyste":
   
   lancer_analyse = False
   
-  # --- OUVERTURE DE L'ENCADRÉ BLEU NUIT ---
-  st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-  
-  st.markdown("### 🖼️ Dépose ta capture d'écran")
-  st.markdown(
-      "<p style='color: #94a3b8; font-size: 0.9rem;'>Glisse ou sélectionne la capture de ton graphique</p>",
-      unsafe_allow_html=True,
-  )
+  # --- ENCADRÉ GLOBAL DU HAUT (Via st.form pour un cadre parfait et fonctionnel) ---
+  with st.form(key="formulaire_analyse"):
+    st.markdown("### 🖼️ Dépose ta capture d'écran")
+    st.markdown(
+        "<p style='color: #94a3b8; font-size: 0.9rem;'>Glisse ou sélectionne la capture de ton graphique</p>",
+        unsafe_allow_html=True,
+    )
 
-  fichier_telecharge = st.file_uploader(
-      "Dépose ta capture ici",
-      type=["png", "jpg", "jpeg"],
-      label_visibility="collapsed",
-      key=f"uploader_{st.session_state.file_uploader_key}",
-  )
+    fichier_telecharge = st.file_uploader(
+        "Dépose ta capture ici",
+        type=["png", "jpg", "jpeg"],
+        label_visibility="collapsed",
+        key=f"uploader_{st.session_state.file_uploader_key}",
+    )
 
-  if fichier_telecharge != st.session_state.dernier_fichier:
-    st.session_state.dernier_fichier = fichier_telecharge
-    st.session_state.resultat_analyse = None
+    if fichier_telecharge != st.session_state.dernier_fichier:
+      st.session_state.dernier_fichier = fichier_telecharge
+      st.session_state.resultat_analyse = None
 
+    if fichier_telecharge is not None:
+      image_originale = Image.open(fichier_telecharge)
+      st.image(image_originale, caption="Capture soumise à l'analyse", use_container_width=True)
+
+    notes_utilisateur = st.text_area(
+        "Remarques (facultatives) :",
+        placeholder="Ex : Période 1H, contexte macro...",
+        height=80,
+    )
+
+    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+    
+    # Bouton de validation du formulaire
+    soumettre_formulaire = st.form_submit_button("🔍 Analyser le graphique")
+
+  # Gestion externe du bouton Remplacer et du lancement
   if fichier_telecharge is not None:
-    image_originale = Image.open(fichier_telecharge)
-    st.image(image_originale, caption="Capture soumise à l'analyse", use_container_width=True)
+    if st.button("🔄 Remplacer la capture"):
+      st.session_state.dernier_fichier = None
+      st.session_state.resultat_analyse = None
+      st.session_state.file_uploader_key += 1
+      st.rerun()
 
-    # Boutons côte à côte sous le graphique
-    col1, col2 = st.columns(2)
-    with col1:
-      if st.button("🔄 Remplacer la capture"):
-        st.session_state.dernier_fichier = None
-        st.session_state.resultat_analyse = None
-        st.session_state.file_uploader_key += 1
-        st.rerun()
-    with col2:
-      lancer_analyse = st.button("🔍 Analyser le graphique")
-
-    st.markdown("---")
-
-  notes_utilisateur = st.text_area(
-      "Remarques (facultatives) :",
-      placeholder="Ex : Période 1H, contexte macro...",
-      height=80,
-  )
-
-  # --- FERMETURE DE L'ENCADRÉ BLEU NUIT ---
-  st.markdown('</div>', unsafe_allow_html=True)
+  if soumettre_formulaire and fichier_telecharge is not None:
+    lancer_analyse = True
 
   # --- TRAITEMENT GEMINI ---
   if lancer_analyse and fichier_telecharge is not None:
@@ -214,9 +212,8 @@ if onglet_choisi == "🔍 Analyste":
   # --- ENCADRÉ BLEU NUIT 2 (RÉSULTAT DE L'ANALYSE) ---
   if st.session_state.resultat_analyse:
     st.markdown("### 📊 Résultat de l'Analyse Détaillée")
-    st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-    st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+      st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
 
 else:
   st.markdown("### 🧠 Coach SMC & Mentorat")
