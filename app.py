@@ -154,12 +154,92 @@ if onglet_choisi == "🔍 Analyste":
   if lancer_analyse and fichier_telecharge is not None:
     with st.spinner("🧠 Analyse approfondie des bougies, des Order Blocks et de la structure SMC en cours..."):
       try:
-        # Retour au modèle exigé par l'API Google
         modele = genai.GenerativeModel("gemini-3.8-flash")
 
-        prompt_systeme = (
-            "Agis en tant qu'analyste quantitatif expert en Smart Money Concepts (SMC) et Price Action. "
-            "Analyse précisément le graphique de trading fourni en image. Fournis une analyse détaillée au format Markdown/HTML structuré comprenant exactement ces 6 sections :\n"
-            "1. <h3 style='color: #38bdf8; font-weight: bold;'>1. VUE D'ENSEMBLE</h3> (description de l'actif, unité de temps apparente si visible, dynamique générale et phases).\n"
-            "2. <h3 style='color: #38bdf8; font-weight: bold;'>2. STRUCTURE DE MARCHÉ</h3> (Biais directionnel, phase, dernier événement type BOS ou ChoCH, et points clés HH, LH, HL, LL relevés sur l'axe des prix).\n"
-            "3. <h3 style='color: #38bdf8; font-weight: bold;'>3. ANALYSE DE LA LIQUID
+        prompt_systeme = """Agis en tant qu'analyste quantitatif expert en Smart Money Concepts (SMC) et Price Action. 
+Analyse précisément le graphique de trading fourni en image. Fournis une analyse détaillée au format Markdown/HTML structuré comprenant exactement ces 6 sections :
+1. <h3 style='color: #38bdf8; font-weight: bold;'>1. VUE D'ENSEMBLE</h3> (description de l'actif, unité de temps apparente si visible, dynamique générale et phases).
+2. <h3 style='color: #38bdf8; font-weight: bold;'>2. STRUCTURE DE MARCHÉ</h3> (Biais directionnel, phase, dernier événement type BOS ou ChoCH, et points clés HH, LH, HL, LL relevés sur l'axe des prix).
+3. <h3 style='color: #38bdf8; font-weight: bold;'>3. ANALYSE DE LA LIQUIDITÉ</h3> (Buy-Side et Sell-Side Liquidity BSL/SSL identifiées).
+4. <h3 style='color: #38bdf8; font-weight: bold;'>4. POINTS D'INTÉRÊT / ORDER BLOCKS</h3> (Liste des Demand OB et Supply OB avec leur force en étoiles et leurs niveaux de prix exacts estimés).
+5. <h3 style='color: #38bdf8; font-weight: bold;'>5. SCÉNARIOS TACTIQUES</h3>
+6. <h3 style='color: #38bdf8; font-weight: bold;'>6. CONCLUSION</h3> (Résumé opérationnel et niveau de confiance global /10).
+
+RÈGLE STRICTE POUR LE CHAPITRE 4 (Order Blocks) :
+- Place OBLIGATOIREMENT une pastille rouge 🔴 devant chaque titre ou élément de Supply Order Block / Vente.
+- Place OBLIGATOIREMENT une pastille verte 🟢 devant chaque titre ou élément de Demand Order Block / Achat.
+
+RÈGLE STRICTE POUR LE CHAPITRE 5 (Scénarios Tactiques) :
+Le chapitre 5 DOIT obligatoirement utiliser ce format HTML stylisé avec des cartes sur fond bleu nuit sobre :
+<h4 style='color: #60a5fa;'>📈 SCÉNARIO PRINCIPAL — [Titre du scénario]</h4>
+<p><strong>Probabilité estimée :</strong> <span style='color: #fbbf24; font-weight: bold;'>[XX]%</span></p>
+<div style='background-color: #0b0f19; border: 1px solid #1e294b; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>
+<p style='color: #e2e8f0; margin-bottom: 8px;'>Prix actuel : <span style='color: #c084fc; font-weight: bold;'>[Prix]</span></p>
+→ [Étape 1]<br>→ [Étape 2]<br>→ [Étape 3]
+</div>
+<p style='margin-bottom: 20px;'><strong>Logique :</strong> [Explication détaillée de la structure]</p>
+
+<h4 style='color: #f43f5e;'>📉 SCÉNARIO ALTERNATIF — [Titre du scénario]</h4>
+<p><strong>Probabilité estimée :</strong> <span style='color: #fbbf24; font-weight: bold;'>[XX]%</span></p>
+<div style='background-color: #0b0f19; border: 1px solid #1e294b; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>
+→ [Étape alternative 1]<br>→ [Étape alternative 2]
+</div>
+
+RÈGLE STRICTE POUR LA LISTE DE CONTRÔLE (À mettre tout à la fin, après la Conclusion) :
+Inclus systématiquement cet encadré HTML de vérification de la capture :
+<div style='background-color: #0b0f19; border: 1px solid #1e294b; border-radius: 10px; padding: 20px; margin-top: 25px;'>
+<h4 style='color: #ffffff; font-weight: bold; margin-bottom: 15px;'>✅ Liste de contrôle — Bonne capture</h4>
+<p style='color: #c084fc; margin: 6px 0;'>✓ Période visible</p>
+<p style='color: #c084fc; margin: 6px 0;'>✓ Échelle de prix lisible</p>
+<p style='color: #c084fc; margin: 6px 0;'>✓ 50 à 100 bougies minimum</p>
+<p style='color: #c084fc; margin: 6px 0;'>✓ Pas d'indicateurs superflus</p>
+<p style='color: #c084fc; margin: 6px 0;'>✓ Volumes visibles (si possible)</p>
+</div>
+
+RÈGLES GÉNÉRALES DE COULEUR (HTML) POUR TOUT LE RAPPORT :
+- Les titres des 6 sections DOIVENT être en bleu clair <h3 style='color: #38bdf8; font-weight: bold;'>...</h3>.
+- Pour TOUS les points clés, niveaux de prix, unités de temps et termes SMC majeurs (BOS, ChoCH, BSL, SSL, Order Block, HH, LH, HL, LL), entoure-les d'une balise HTML violette : <span style='color: #c084fc; font-weight: bold;'>...</span>.
+- Pour toutes les étoiles de notation de force (ex: ★★★★★), entoure-les d'une balise HTML dorée : <span style='color: #fbbf24; font-weight: bold;'>★★★★★</span>."""
+
+        contents = [prompt_systeme, image_originale]
+        if notes_utilisateur:
+          contents.append(f"Notes complémentaires du trader : {notes_utilisateur}")
+
+        reponse = modele.generate_content(contents)
+        st.session_state.resultat_analyse = reponse.text
+        st.success("Analyse SMC approfondie terminée avec succès !")
+
+      except Exception as e:
+        st.error(
+            "Erreur lors de l'analyse avec l'IA. Vérifiez votre clé API"
+            f" Gemini dans les secrets Streamlit : {e}"
+        )
+
+  elif lancer_analyse and fichier_telecharge is None:
+    st.warning("Veuillez d'abord déposer une capture d'écran.")
+
+  # --- ENCADRÉ RÉSULTAT DE L'ANALYSE ---
+  if st.session_state.resultat_analyse:
+    st.markdown("### 📊 Résultat de l'Analyse Détaillée")
+    st.markdown('<div class="custom-card">', unsafe_allow_html=True)
+    st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+else:
+  st.markdown("### 🧠 Coach SMC & Mentorat")
+  st.write(
+      "Posez vos questions sur la lecture du marché, la gestion du risque ou"
+      " l'interprétation des Order Blocks."
+  )
+  question_coach = st.text_input(
+      "Votre question au coach :",
+      placeholder="Ex : Comment différencier un vrai BOS d'un sweep ?",
+  )
+  if st.button("💬 Poser la question"):
+    st.info(
+        "🤖 **Coach SMC :** Un BOS (Break of Structure) est validé par une"
+        " clôture franche de bougie au-delà du dernier sommet/creux, tandis"
+        " qu'un Sweep (ou Inducement) se contente de percer le niveau avec une"
+        " mèche pour récolter la liquidité avant de repartir dans l'autre"
+        " sens."
+    )
