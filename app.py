@@ -144,18 +144,18 @@ if onglet_choisi == "🔍 Analyste":
     with col2:
       lancer_analyse = st.button("🔍 Analyser le graphique")
   else:
-    # S'il n'y a pas encore de fichier, on centre le bouton d'analyse ou on le laisse prendre sa place
     col_g, col_c, col_d = st.columns([1, 2, 1])
     with col_c:
       lancer_analyse = st.button("🔍 Analyser le graphique")
 
-  st.markdown('</div>', unsafe_allow_html=True)  # Fin de l'encadré bleu nuit
+  st.markdown('</div>', unsafe_allow_html=True)
 
   # --- TRAITEMENT GEMINI ---
   if lancer_analyse and fichier_telecharge is not None:
     with st.spinner("🧠 Analyse approfondie des bougies, des Order Blocks et de la structure SMC en cours..."):
       try:
-        modele = genai.GenerativeModel("gemini-3.8-flash")
+        # Utilisation de gemini-1.5-flash pour repartir sur un quota frais
+        modele = genai.GenerativeModel("gemini-1.5-flash")
 
         prompt_systeme = (
             "Agis en tant qu'analyste quantitatif expert en Smart Money Concepts (SMC) et Price Action. "
