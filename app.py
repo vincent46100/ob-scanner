@@ -46,7 +46,7 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Style sobre et discret, fidèle à votre référence visuelle */
+    /* Style sobre et harmonisé pour tous les conteneurs Streamlit */
     [data-testid="stForm"], [data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #0b0f19 !important;
         border: 1px solid #1e294b !important;
@@ -99,7 +99,7 @@ if onglet_choisi == "🔍 Analyste":
   
   lancer_analyse = False
   
-  # --- ENCADRÉ GLOBAL DU HAUT (FORMULAIRE DISCRET) ---
+  # --- ENCADRÉ GLOBAL DU HAUT (FORMULAIRE) ---
   with st.form(key="formulaire_analyse"):
     st.markdown("### 🖼️ Dépose ta capture d'écran")
     st.markdown(
@@ -161,7 +161,7 @@ if onglet_choisi == "🔍 Analyste":
             "- Place OBLIGATOIREMENT une pastille rouge 🔴 devant chaque titre ou élément de Supply Order Block / Vente.\n"
             "- Place OBLIGATOIREMENT une pastille verte 🟢 devant chaque titre ou élément de Demand Order Block / Achat.\n\n"
             "RÈGLE STRICTE POUR LE CHAPITRE 5 (Scénarios Tactiques) :\n"
-            "Le chapitre 5 DOIT obligatoirement utiliser ce format HTML stylisé avec des cartes sur fond sombre :\n"
+            "Le chapitre 5 DOIT obligatoirement utiliser ce format HTML stylisé avec des cartes sur fond bleu nuit sobre :\n"
             "<h4 style='color: #60a5fa;'>📈 SCÉNARIO PRINCIPAL — [Titre du scénario]</h4>\n"
             "<p><strong>Probabilité estimée :</strong> <span style='color: #fbbf24; font-weight: bold;'>[XX]%</span></p>\n"
             "<div style='background-color: #0b0f19; border: 1px solid #1e294b; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>\n"
