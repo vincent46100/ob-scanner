@@ -33,20 +33,36 @@ st.markdown("""
         color: #94a3b8;
         font-size: 1rem;
     }
+    
+    /* Style général des boutons secondaires (Supprimer / Remplacer) */
     .stButton>button {
-        background: linear-gradient(135deg, #a855f7 0%, #a855f7 100%);
+        background-color: #27272a;
         color: white;
-        border: none;
-        border-radius: 20px;
+        border: 1px solid #3f3f46;
+        border-radius: 8px;
         font-weight: bold;
-        font-size: 1rem;
         width: 100%;
-        padding: 14px;
-        box-shadow: 0 4px 14px rgba(168, 85, 247, 0.3);
+        padding: 10px;
     }
     .stButton>button:hover {
-        opacity: 0.9;
-        box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+        background-color: #3f3f46;
+    }
+
+    /* Style spécifique pour le bouton principal "Analyser le graphique" */
+    .btn-analyser div.stButton>button {
+        background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 25px !important;
+        font-weight: bold !important;
+        font-size: 1.1rem !important;
+        width: 100% !important;
+        padding: 14px 20px !important;
+        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4) !important;
+    }
+    .btn-analyser div.stButton>button:hover {
+        opacity: 0.92 !important;
+        box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -132,9 +148,14 @@ if onglet_choisi == "🔍 Analyste":
         height=80,
     )
 
-    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
-    if st.button("🔍 Analyser le graphique"):
+    # Encapsulation dans la classe CSS personnalisée 'btn-analyser' pour forcer la pleine largeur et le style violet
+    st.markdown('<div class="btn-analyser">', unsafe_allow_html=True)
+    lancer_analyse = st.button("🔍 Analyser le graphique")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if lancer_analyse:
       with st.spinner("🧠 Analyse approfondie des bougies, des Order Blocks et de la structure SMC en cours..."):
         try:
           modele = genai.GenerativeModel("gemini-3.8-flash")
@@ -159,68 +180,4 @@ if onglet_choisi == "🔍 Analyste":
               "<p style='color: #e2e8f0; margin-bottom: 8px;'>Prix actuel : <span style='color: #c084fc; font-weight: bold;'>[Prix]</span></p>\n"
               "→ [Étape 1]<br>→ [Étape 2]<br>→ [Étape 3]\n"
               "</div>\n"
-              "<p style='margin-bottom: 20px;'><strong>Logique :</strong> [Explication détaillée de la structure]</p>\n\n"
-              "<h4 style='color: #f43f5e;'>📉 SCÉNARIO ALTERNATIF — [Titre du scénario]</h4>\n"
-              "<p><strong>Probabilité estimée :</strong> <span style='color: #fbbf24; font-weight: bold;'>[XX]%</span></p>\n"
-              "<div style='background-color: #111827; border: 1px solid #374151; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>\n"
-              "→ [Étape alternative 1]<br>→ [Étape alternative 2]\n"
-              "</div>\n\n"
-              "RÈGLE STRICTE POUR LA LISTE DE CONTRÔLE (À mettre tout à la fin, après la Conclusion) :\n"
-              "Inclus systématiquement cet encadré HTML de vérification de la capture :\n"
-              "<div style='background-color: #0b0d1b; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; margin-top: 25px;'>\n"
-              "<h4 style='color: #ffffff; font-weight: bold; margin-bottom: 15px;'>✅ Liste de contrôle — Bonne capture</h4>\n"
-              "<p style='color: #c084fc; margin: 6px 0;'>✓ Période visible</p>\n"
-              "<p style='color: #c084fc; margin: 6px 0;'>✓ Échelle de prix lisible</p>\n"
-              "<p style='color: #c084fc; margin: 6px 0;'>✓ 50 à 100 bougies minimum</p>\n"
-              "<p style='color: #c084fc; margin: 6px 0;'>✓ Pas d'indicateurs superflus</p>\n"
-              "<p style='color: #c084fc; margin: 6px 0;'>✓ Volumes visibles (si possible)</p>\n"
-              "</div>\n\n"
-              "RÈGLES GÉNÉRALES DE COULEUR (HTML) POUR TOUT LE RAPPORT :\n"
-              "- Les titres des 6 sections DOIVENT être en bleu clair <h3 style='color: #38bdf8; font-weight: bold;'>...</h3>.\n"
-              "- Pour TOUS les points clés, niveaux de prix, unités de temps et termes SMC majeurs (BOS, ChoCH, BSL, SSL, Order Block, HH, LH, HL, LL), entoure-les d'une balise HTML violette : <span style='color: #c084fc; font-weight: bold;'>...</span>.\n"
-              "- Pour toutes les étoiles de notation de force (ex: ★★★★★), entoure-les d'une balise HTML dorée : <span style='color: #fbbf24; font-weight: bold;'>★★★★★</span>."
-          )
-
-          contents = [prompt_systeme, image_originale]
-          if notes_utilisateur:
-            contents.append(f"Notes complémentaires du trader : {notes_utilisateur}")
-
-          reponse = modele.generate_content(contents)
-          st.session_state.resultat_analyse = reponse.text
-          st.success("Analyse SMC approfondie terminée avec succès !")
-
-        except Exception as e:
-          st.error(
-              "Erreur lors de l'analyse avec l'IA. Vérifiez votre clé API"
-              f" Gemini dans les secrets Streamlit : {e}"
-          )
-
-    if st.session_state.resultat_analyse:
-      st.markdown("---")
-      st.markdown("### 📊 Résultat de l'Analyse Détaillée")
-      st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
-
-  else:
-    st.info(
-        "👆 Veuillez déposer une capture d'écran de votre graphique pour lancer"
-        " l'analyse personnalisée."
-    )
-
-else:
-  st.markdown("### 🧠 Coach SMC & Mentorat")
-  st.write(
-      "Posez vos questions sur la lecture du marché, la gestion du risque ou"
-      " l'interprétation des Order Blocks."
-  )
-  question_coach = st.text_input(
-      "Votre question au coach :",
-      placeholder="Ex : Comment différencier un vrai BOS d'un sweep ?",
-  )
-  if st.button("💬 Poser la question"):
-    st.info(
-        "🤖 **Coach SMC :** Un BOS (Break of Structure) est validé par une"
-        " clôture franche de bougie au-delà du dernier sommet/creux, tandis"
-        " qu'un Sweep (ou Inducement) se contente de percer le niveau avec une"
-        " mèche pour récolter la liquidité avant de repartir dans l'autre"
-        " sens."
-    )
+              "<p style='margin-bottom: 20px;'><strong>Logique :</strong> [Explication détaillée de la structure]</p>\n\n
