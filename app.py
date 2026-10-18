@@ -34,41 +34,24 @@ st.markdown(
         color: #94a3b8;
         font-size: 1rem;
     }
-    
-    /* Boutons secondaires (Supprimer / Remplacer) */
-    .stButton > button {
-        background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-weight: bold !important;
-        width: 100% !important;
-        padding: 10px !important;
+    .stButton>button {
+        background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        width: 100%;
+        padding: 12px;
     }
-    .stButton > button:hover {
-        opacity: 0.9 !important;
-    }
-
-    /* Style spécifique et PLEINE LARGEUR pour le bouton Analyser */
-    div[data-testid="stButton"] > button[kind="primary"],
-    .btn-analyser div[data-testid="stButton"] > button,
-    .btn-analyser button {
-        background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 25px !important;
-        font-weight: bold !important;
-        font-size: 1.1rem !important;
-        width: 100% !important;
-        padding: 14px 20px !important;
-        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4) !important;
+    .stButton>button:hover {
+        opacity: 0.9;
     }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# --- GESTION DE L'ÉTAT ---
+# --- GESTION DE L'ÉTAT (INITIALISATION) ---
 if "dernier_fichier" not in st.session_state:
   st.session_state.dernier_fichier = None
 if "resultat_analyse" not in st.session_state:
@@ -162,19 +145,14 @@ if onglet_choisi == "🔍 Analyste":
 
     st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
-    # Bouton principal avec type 'primary' pour forcer le CSS pleine largeur
-    st.markdown('<div class="btn-analyser">', unsafe_allow_html=True)
-    lancer_analyse = st.button("🔍 Analyser le graphique", type="primary")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    if lancer_analyse:
+    if st.button("🔍 Analyser le graphique"):
       with st.spinner(
           "🧠 Analyse approfondie des bougies, des Order Blocks et de la"
           " structure SMC en cours..."
       ):
         try:
-          # Modèle Gemini valide et actif
-          modele = genai.GenerativeModel("gemini-2.5-flash")
+          # Utilisation du modèle actif requis
+          modele = genai.GenerativeModel("gemini-3.8-flash")
 
           prompt_systeme = (
               "Agis en tant qu'analyste quantitatif expert en Smart Money"
