@@ -170,52 +170,18 @@ if onglet_choisi == "🔍 Analyste":
               " → [Étape alternative 1]<br>→ [Étape alternative 2]"
               " </div>"
               " "
+              " RÈGLE STRICTE POUR LA LISTE DE CONTRÔLE (À mettre tout à la fin, après la Conclusion) :"
+              " Inclus systématiquement cet encadré HTML de vérification de la capture :"
+              " <div style='background-color: #0b0d1b; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; margin-top: 25px;'>"
+              " <h4 style='color: #ffffff; font-weight: bold; margin-bottom: 15px;'>✅ Liste de contrôle — Bonne capture</h4>"
+              " <p style='color: #c084fc; margin: 6px 0;'>✓ Période visible</p>"
+              " <p style='color: #c084fc; margin: 6px 0;'>✓ Échelle de prix lisible</p>"
+              " <p style='color: #c084fc; margin: 6px 0;'>✓ 50 à 100 bougies minimum</p>"
+              " <p style='color: #c084fc; margin: 6px 0;'>✓ Pas d'indicateurs superflus</p>"
+              " <p style='color: #c084fc; margin: 6px 0;'>✓ Volumes visibles (si possible)</p>"
+              " </div>"
+              " "
               " RÈGLES GÉNÉRALES DE COULEUR (HTML) POUR TOUT LE RAPPORT :"
               " - Les titres des 6 sections DOIVENT être en bleu clair <h3 style='color: #38bdf8; font-weight: bold;'>...</h3>."
               " - Pour TOUS les points clés, niveaux de prix, unités de temps et termes SMC majeurs (BOS, ChoCH, BSL, SSL, Order Block, HH, LH, HL, LL), entoure-les d'une balise HTML violette : <span style='color: #c084fc; font-weight: bold;'>...</span>."
-              " - Pour toutes les étoiles de notation de force (ex: ★★★★★), entoure-les d'une balise HTML dorée : <span style='color: #fbbf24; font-weight: bold;'>★★★★★</span>."
-          )
-
-          contents = [prompt_systeme, image_originale]
-          if notes_utilisateur:
-            contents.append(f"Notes complémentaires du trader : {notes_utilisateur}")
-
-          reponse = modele.generate_content(contents)
-          st.session_state.resultat_analyse = reponse.text
-          st.success("Analyse SMC approfondie terminée avec succès !")
-
-        except Exception as e:
-          st.error(
-              "Erreur lors de l'analyse avec l'IA. Vérifiez votre clé API"
-              f" Gemini dans les secrets Streamlit : {e}"
-          )
-
-    if st.session_state.resultat_analyse:
-      st.markdown("---")
-      st.markdown("### 📊 Résultat de l'Analyse Détaillée")
-      st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
-
-  else:
-    st.info(
-        "👆 Veuillez déposer une capture d'écran de votre graphique pour lancer"
-        " l'analyse personnalisée."
-    )
-
-else:
-  st.markdown("### 🧠 Coach SMC & Mentorat")
-  st.write(
-      "Posez vos questions sur la lecture du marché, la gestion du risque ou"
-      " l'interprétation des Order Blocks."
-  )
-  question_coach = st.text_input(
-      "Votre question au coach :",
-      placeholder="Ex : Comment différencier un vrai BOS d'un sweep ?",
-  )
-  if st.button("💬 Poser la question"):
-    st.info(
-        "🤖 **Coach SMC :** Un BOS (Break of Structure) est validé par une"
-        " clôture franche de bougie au-delà du dernier sommet/creux, tandis"
-        " qu'un Sweep (ou Inducement) se contente de percer le niveau avec une"
-        " mèche pour récolter la liquidité avant de repartir dans l'autre"
-        " sens."
-    )
+              " - Pour toutes les étoiles de notation de force (ex: ★★★★★), entoure-les d'une balise HTML dorée : <span style='color: #fbbf24; font-weight:
