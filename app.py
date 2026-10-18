@@ -46,13 +46,13 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Style forcé pour les formulaires/conteneurs Streamlit en bleu nuit */
+    /* Style sobre et discret, fidèle à votre référence visuelle */
     [data-testid="stForm"], [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #0d1b3e !important;
-        border: 2px solid #3b82f6 !important;
-        border-radius: 14px !important;
+        background-color: #0b0f19 !important;
+        border: 1px solid #1e294b !important;
+        border-radius: 12px !important;
         padding: 25px !important;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -99,7 +99,7 @@ if onglet_choisi == "🔍 Analyste":
   
   lancer_analyse = False
   
-  # --- ENCADRÉ GLOBAL DU HAUT (Via st.form pour un cadre parfait et fonctionnel) ---
+  # --- ENCADRÉ GLOBAL DU HAUT (FORMULAIRE DISCRET) ---
   with st.form(key="formulaire_analyse"):
     st.markdown("### 🖼️ Dépose ta capture d'écran")
     st.markdown(
@@ -130,10 +130,8 @@ if onglet_choisi == "🔍 Analyste":
 
     st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
     
-    # Bouton de validation du formulaire
     soumettre_formulaire = st.form_submit_button("🔍 Analyser le graphique")
 
-  # Gestion externe du bouton Remplacer et du lancement
   if fichier_telecharge is not None:
     if st.button("🔄 Remplacer la capture"):
       st.session_state.dernier_fichier = None
@@ -163,22 +161,22 @@ if onglet_choisi == "🔍 Analyste":
             "- Place OBLIGATOIREMENT une pastille rouge 🔴 devant chaque titre ou élément de Supply Order Block / Vente.\n"
             "- Place OBLIGATOIREMENT une pastille verte 🟢 devant chaque titre ou élément de Demand Order Block / Achat.\n\n"
             "RÈGLE STRICTE POUR LE CHAPITRE 5 (Scénarios Tactiques) :\n"
-            "Le chapitre 5 DOIT obligatoirement utiliser ce format HTML stylisé avec des cartes sur fond bleu nuit :\n"
+            "Le chapitre 5 DOIT obligatoirement utiliser ce format HTML stylisé avec des cartes sur fond sombre :\n"
             "<h4 style='color: #60a5fa;'>📈 SCÉNARIO PRINCIPAL — [Titre du scénario]</h4>\n"
             "<p><strong>Probabilité estimée :</strong> <span style='color: #fbbf24; font-weight: bold;'>[XX]%</span></p>\n"
-            "<div style='background-color: #0f172a; border: 1px solid #1e293b; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>\n"
+            "<div style='background-color: #0b0f19; border: 1px solid #1e294b; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>\n"
             "<p style='color: #e2e8f0; margin-bottom: 8px;'>Prix actuel : <span style='color: #c084fc; font-weight: bold;'>[Prix]</span></p>\n"
             "→ [Étape 1]<br>→ [Étape 2]<br>→ [Étape 3]\n"
             "</div>\n"
             "<p style='margin-bottom: 20px;'><strong>Logique :</strong> [Explication détaillée de la structure]</p>\n\n"
             "<h4 style='color: #f43f5e;'>📉 SCÉNARIO ALTERNATIF — [Titre du scénario]</h4>\n"
             "<p><strong>Probabilité estimée :</strong> <span style='color: #fbbf24; font-weight: bold;'>[XX]%</span></p>\n"
-            "<div style='background-color: #0f172a; border: 1px solid #1e293b; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>\n"
+            "<div style='background-color: #0b0f19; border: 1px solid #1e294b; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>\n"
             "→ [Étape alternative 1]<br>→ [Étape alternative 2]\n"
             "</div>\n\n"
             "RÈGLE STRICTE POUR LA LISTE DE CONTRÔLE (À mettre tout à la fin, après la Conclusion) :\n"
-            "Inclus systématiquement cet encadré HTML bleu nuit de vérification de la capture :\n"
-            "<div style='background-color: #0d1b3e; border: 1px solid #3b82f6; border-radius: 10px; padding: 20px; margin-top: 25px;'>\n"
+            "Inclus systématiquement cet encadré HTML de vérification de la capture :\n"
+            "<div style='background-color: #0b0f19; border: 1px solid #1e294b; border-radius: 10px; padding: 20px; margin-top: 25px;'>\n"
             "<h4 style='color: #ffffff; font-weight: bold; margin-bottom: 15px;'>✅ Liste de contrôle — Bonne capture</h4>\n"
             "<p style='color: #c084fc; margin: 6px 0;'>✓ Période visible</p>\n"
             "<p style='color: #c084fc; margin: 6px 0;'>✓ Échelle de prix lisible</p>\n"
@@ -209,7 +207,7 @@ if onglet_choisi == "🔍 Analyste":
   elif lancer_analyse and fichier_telecharge is None:
     st.warning("Veuillez d'abord déposer une capture d'écran.")
 
-  # --- ENCADRÉ BLEU NUIT 2 (RÉSULTAT DE L'ANALYSE) ---
+  # --- ENCADRÉ RÉSULTAT DE L'ANALYSE ---
   if st.session_state.resultat_analyse:
     st.markdown("### 📊 Résultat de l'Analyse Détaillée")
     with st.container(border=True):
