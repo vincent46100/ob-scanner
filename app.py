@@ -46,13 +46,13 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Style des conteneurs à bordure Streamlit */
+    /* Style bien visible pour les conteneurs à bordure Streamlit */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #0b0d1b !important;
-        border: 1px solid #1e293b !important;
+        background-color: #131b2e !important;
+        border: 1px solid #334155 !important;
         border-radius: 12px !important;
-        padding: 15px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+        padding: 20px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
     }
     </style>
 """, unsafe_allow_html=True)
