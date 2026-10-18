@@ -46,13 +46,13 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Style Bleu Nuit pour tous les conteneurs à bordure Streamlit */
+    /* Style des conteneurs bien visibles avec un bleu nuit contrasté */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #0b1329 !important;
-        border: 1px solid #1e2942 !important;
+        background-color: #13203f !important;
+        border: 1px solid #3b82f6 !important;
         border-radius: 12px !important;
         padding: 20px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -99,7 +99,7 @@ if onglet_choisi == "🔍 Analyste":
   
   lancer_analyse = False
   
-  # --- ENCADRÉ GLOBAL BLEU NUIT 1 (RÉCEPTION & SAISIE) ---
+  # --- ENCADRÉ GLOBAL 1 (RÉCEPTION & SAISIE) ---
   with st.container(border=True):
     st.markdown("### 🖼️ Dépose ta capture d'écran")
     st.markdown(
@@ -175,7 +175,7 @@ if onglet_choisi == "🔍 Analyste":
             "</div>\n\n"
             "RÈGLE STRICTE POUR LA LISTE DE CONTRÔLE (À mettre tout à la fin, après la Conclusion) :\n"
             "Inclus systématiquement cet encadré HTML bleu nuit de vérification de la capture :\n"
-            "<div style='background-color: #0b1329; border: 1px solid #1e2942; border-radius: 10px; padding: 20px; margin-top: 25px;'>\n"
+            "<div style='background-color: #13203f; border: 1px solid #3b82f6; border-radius: 10px; padding: 20px; margin-top: 25px;'>\n"
             "<h4 style='color: #ffffff; font-weight: bold; margin-bottom: 15px;'>✅ Liste de contrôle — Bonne capture</h4>\n"
             "<p style='color: #c084fc; margin: 6px 0;'>✓ Période visible</p>\n"
             "<p style='color: #c084fc; margin: 6px 0;'>✓ Échelle de prix lisible</p>\n"
@@ -206,7 +206,7 @@ if onglet_choisi == "🔍 Analyste":
   elif lancer_analyse and fichier_telecharge is None:
     st.warning("Veuillez d'abord déposer une capture d'écran.")
 
-  # --- ENCADRÉ GLOBAL BLEU NUIT 2 (RÉSULTAT DE L'ANALYSE) ---
+  # --- ENCADRÉ GLOBAL 2 (RÉSULTAT DE L'ANALYSE) ---
   if st.session_state.resultat_analyse:
     st.markdown("### 📊 Résultat de l'Analyse Détaillée")
     with st.container(border=True):
