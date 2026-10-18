@@ -150,7 +150,7 @@ if onglet_choisi == "🔍 Analyste":
 
     st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
-    # Encapsulation dans la classe CSS personnalisée 'btn-analyser' pour forcer la pleine largeur et le style violet
+    # Bouton d'analyse pleine largeur stylisé en violet
     st.markdown('<div class="btn-analyser">', unsafe_allow_html=True)
     lancer_analyse = st.button("🔍 Analyser le graphique")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -158,7 +158,7 @@ if onglet_choisi == "🔍 Analyste":
     if lancer_analyse:
       with st.spinner("🧠 Analyse approfondie des bougies, des Order Blocks et de la structure SMC en cours..."):
         try:
-          modele = genai.GenerativeModel("gemini-3.8-flash")
+          modele = genai.GenerativeModel("gemini-1.5-flash")
 
           prompt_systeme = (
               "Agis en tant qu'analyste quantitatif expert en Smart Money Concepts (SMC) et Price Action. "
@@ -170,8 +170,8 @@ if onglet_choisi == "🔍 Analyste":
               "5. <h3 style='color: #38bdf8; font-weight: bold;'>5. SCÉNARIOS TACTIQUES</h3>\n"
               "6. <h3 style='color: #38bdf8; font-weight: bold;'>6. CONCLUSION</h3> (Résumé opérationnel et niveau de confiance global /10).\n\n"
               "RÈGLE STRICTE POUR LE CHAPITRE 4 (Order Blocks) :\n"
-              "- Place OBLIGATOIREMENT une pastille rouge 🔴 devant chaque titre ou élément de Supply Order Block / Vente (ex: 🔴 Supply Order Blocks).\n"
-              "- Place OBLIGATOIREMENT une pastille verte 🟢 devant chaque titre ou élément de Demand Order Block / Achat (ex: 🟢 Demand Order Blocks).\n\n"
+              "- Place OBLIGATOIREMENT une pastille rouge 🔴 devant chaque titre ou élément de Supply Order Block / Vente.\n"
+              "- Place OBLIGATOIREMENT une pastille verte 🟢 devant chaque titre ou élément de Demand Order Block / Achat.\n\n"
               "RÈGLE STRICTE POUR LE CHAPITRE 5 (Scénarios Tactiques) :\n"
               "Le chapitre 5 DOIT obligatoirement utiliser ce format HTML stylisé avec des cartes sur fond sombre :\n"
               "<h4 style='color: #60a5fa;'>📈 SCÉNARIO PRINCIPAL — [Titre du scénario]</h4>\n"
@@ -180,4 +180,13 @@ if onglet_choisi == "🔍 Analyste":
               "<p style='color: #e2e8f0; margin-bottom: 8px;'>Prix actuel : <span style='color: #c084fc; font-weight: bold;'>[Prix]</span></p>\n"
               "→ [Étape 1]<br>→ [Étape 2]<br>→ [Étape 3]\n"
               "</div>\n"
-              "<p style='margin-bottom: 20px;'><strong>Logique :</strong> [Explication détaillée de la structure]</p>\n\n
+              "<p style='margin-bottom: 20px;'><strong>Logique :</strong> [Explication détaillée de la structure]</p>\n\n"
+              "<h4 style='color: #f43f5e;'>📉 SCÉNARIO ALTERNATIF — [Titre du scénario]</h4>\n"
+              "<p><strong>Probabilité estimée :</strong> <span style='color: #fbbf24; font-weight: bold;'>[XX]%</span></p>\n"
+              "<div style='background-color: #111827; border: 1px solid #374151; padding: 15px; border-radius: 8px; color: #4ade80; margin-bottom: 15px;'>\n"
+              "→ [Étape alternative 1]<br>→ [Étape alternative 2]\n"
+              "</div>\n\n"
+              "RÈGLE STRICTE POUR LA LISTE DE CONTRÔLE (À mettre tout à la fin, après la Conclusion) :\n"
+              "Inclus systématiquement cet encadré HTML de vérification de la capture :\n"
+              "<div style='background-color: #0b0d1b; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; margin-top: 25px;'>\n"
+              "<h4 style='color: #ffffff; font-weight: bold; margin-bottom: 15px
