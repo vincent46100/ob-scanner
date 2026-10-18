@@ -46,14 +46,13 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Style des encadrés principaux */
-    .custom-card {
-        background-color: #0b0d1b;
-        border: 1px solid #1e293b;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    /* Style des conteneurs à bordure Streamlit */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #0b0d1b !important;
+        border: 1px solid #1e293b !important;
+        border-radius: 12px !important;
+        padding: 15px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -98,53 +97,49 @@ st.markdown("---")
 
 if onglet_choisi == "🔍 Analyste":
   
-  # --- OUVERTURE DE L'ENCADRÉ GLOBAL DU HAUT ---
-  st.markdown('<div class="custom-card">', unsafe_allow_html=True)
-  
-  st.markdown("### 🖼️ Dépose ta capture d'écran")
-  st.markdown(
-      "<p style='color: #94a3b8; font-size: 0.9rem;'>Glisse ou sélectionne la capture de ton graphique</p>",
-      unsafe_allow_html=True,
-  )
-
-  fichier_telecharge = st.file_uploader(
-      "Dépose ta capture ici",
-      type=["png", "jpg", "jpeg"],
-      label_visibility="collapsed",
-      key=f"uploader_{st.session_state.file_uploader_key}",
-  )
-
-  if fichier_telecharge != st.session_state.dernier_fichier:
-    st.session_state.dernier_fichier = fichier_telecharge
-    st.session_state.resultat_analyse = None
-
   lancer_analyse = False
+  
+  # --- ENCADRÉ GLOBAL 1 (RÉCEPTION & SAISIE) ---
+  with st.container(border=True):
+    st.markdown("### 🖼️ Dépose ta capture d'écran")
+    st.markdown(
+        "<p style='color: #94a3b8; font-size: 0.9rem;'>Glisse ou sélectionne la capture de ton graphique</p>",
+        unsafe_allow_html=True,
+    )
 
-  if fichier_telecharge is not None:
-    image_originale = Image.open(fichier_telecharge)
-    st.image(image_originale, caption="Capture soumise à l'analyse", use_container_width=True)
+    fichier_telecharge = st.file_uploader(
+        "Dépose ta capture ici",
+        type=["png", "jpg", "jpeg"],
+        label_visibility="collapsed",
+        key=f"uploader_{st.session_state.file_uploader_key}",
+    )
 
-    # Boutons côte à côte sous le graphique
-    col1, col2 = st.columns(2)
-    with col1:
-      if st.button("🔄 Remplacer la capture"):
-        st.session_state.dernier_fichier = None
-        st.session_state.resultat_analyse = None
-        st.session_state.file_uploader_key += 1
-        st.rerun()
-    with col2:
-      lancer_analyse = st.button("🔍 Analyser le graphique")
+    if fichier_telecharge != st.session_state.dernier_fichier:
+      st.session_state.dernier_fichier = fichier_telecharge
+      st.session_state.resultat_analyse = None
 
-    st.markdown("---")
+    if fichier_telecharge is not None:
+      image_originale = Image.open(fichier_telecharge)
+      st.image(image_originale, caption="Capture soumise à l'analyse", use_container_width=True)
 
-  notes_utilisateur = st.text_area(
-      "Remarques (facultatives) :",
-      placeholder="Ex : Période 1H, contexte macro...",
-      height=80,
-  )
+      # Boutons côte à côte sous le graphique
+      col1, col2 = st.columns(2)
+      with col1:
+        if st.button("🔄 Remplacer la capture"):
+          st.session_state.dernier_fichier = None
+          st.session_state.resultat_analyse = None
+          st.session_state.file_uploader_key += 1
+          st.rerun()
+      with col2:
+        lancer_analyse = st.button("🔍 Analyser le graphique")
 
-  # --- FERMETURE DE L'ENCADRÉ GLOBAL DU HAUT ---
-  st.markdown('</div>', unsafe_allow_html=True)
+      st.markdown("---")
+
+    notes_utilisateur = st.text_area(
+        "Remarques (facultatives) :",
+        placeholder="Ex : Période 1H, contexte macro...",
+        height=80,
+    )
 
   # --- TRAITEMENT GEMINI ---
   if lancer_analyse and fichier_telecharge is not None:
@@ -211,13 +206,11 @@ if onglet_choisi == "🔍 Analyste":
   elif lancer_analyse and fichier_telecharge is None:
     st.warning("Veuillez d'abord déposer une capture d'écran.")
 
-  # --- ENCADRÉ 2 : RÉSULTAT DE L'ANALYSE (Bas) ---
+  # --- ENCADRÉ GLOBAL 2 (RÉSULTAT DE L'ANALYSE) ---
   if st.session_state.resultat_analyse:
     st.markdown("### 📊 Résultat de l'Analyse Détaillée")
-    st.markdown(
-        f'<div class="custom-card">{st.session_state.resultat_analyse}</div>',
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+      st.markdown(st.session_state.resultat_analyse, unsafe_allow_html=True)
 
 else:
   st.markdown("### 🧠 Coach SMC & Mentorat")
