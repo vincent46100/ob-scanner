@@ -98,7 +98,7 @@ st.markdown("---")
 
 if onglet_choisi == "🔍 Analyste":
   
-  # --- ENCADRÉ 1 : DÉPOSE TA CAPTURE (Haut) ---
+  # --- ENCADRÉ 1 : ENGROBLE TOUTE LA ZONE DE SAISIE DU HAUT ---
   st.markdown('<div class="custom-card">', unsafe_allow_html=True)
   
   st.markdown("### 🖼️ Dépose ta capture d'écran")
@@ -143,7 +143,7 @@ if onglet_choisi == "🔍 Analyste":
       height=80,
   )
 
-  st.markdown('</div>', unsafe_allow_html=True)
+  st.markdown('</div>', unsafe_allow_html=True)  # Fin de l'encadré du haut
 
   # --- TRAITEMENT GEMINI ---
   if lancer_analyse and fichier_telecharge is not None:
